@@ -4,7 +4,7 @@ import starlight from "@astrojs/starlight";
 import { remarkRewriteMdLinks } from "./src/remark/rewrite-md-links.mjs";
 
 export default defineConfig({
-  site: "http://127.0.0.1:4322",
+  site: "https://valkey.alexey-temnikov.com",
 
   markdown: {
     remarkPlugins: [remarkRewriteMdLinks],

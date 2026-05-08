@@ -26,6 +26,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Deploy to GitHub Pages requires these permissions on the GITHUB_TOKEN.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -168,9 +174,30 @@ jobs:
           fi
           echo "No leaked .md links."
 
-      - name: Upload dist artifact
+      - name: Upload dist artifact (kept for non-Pages debugging)
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.sha }}
           path: ${{ env.PROJECT_ROOT }}/dist
           retention-days: 7
+
+      # GitHub Pages deploy needs an artifact uploaded with this specific
+      # action so the deploy job can pick it up.
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.PROJECT_ROOT }}/dist
+
+  # Deploy job — only runs on pushes to main (not PRs).
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
