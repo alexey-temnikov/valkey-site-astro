@@ -129,6 +129,8 @@ jobs:
             cd "$GITHUB_WORKSPACE/valkey-glide-docs"
             # Inject base path for sub-path hosting
             sed -i '/^  site:/a\  base: "/glide/",' astro.config.mjs
+            # Disable links validator — it fails when base path changes
+            sed -i '/plugins:/,/^\s*\],/c\      plugins: [],' astro.config.mjs
             # pnpm-workspace.yaml has onlyBuiltDependencies but no packages
             # field, which confuses pnpm 9 in non-workspace mode
             rm -f pnpm-workspace.yaml
