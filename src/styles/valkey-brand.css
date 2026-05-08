@@ -691,11 +691,11 @@ starlight-menu-button + nav a[aria-current="page"],
 
 /* Compact GitHub pill + search button between hamburger and full-width
    layouts. Font on the nav anchors is already fluid via clamp() above. */
-@media (max-width: 1200px) and (min-width: 861px) {
+@media (max-width: 1200px) and (min-width: 1025px) {
   .site-header nav .github-button {
     padding: 0.3rem 0.55rem;
     gap: 0.35rem;
-    font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 0.95rem);
+    font-size: clamp(0.82rem, calc(-0.243rem + 1.657vw), 0.92rem);
   }
   .site-header nav .github-button .gh-stars {
     font-size: 0.7rem;
@@ -703,34 +703,14 @@ starlight-menu-button + nav a[aria-current="page"],
   }
   .site-header .vk-search button[data-open-modal] {
     padding: 0.3rem 0.55rem;
-    font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 0.95rem);
+    font-size: clamp(0.82rem, calc(-0.243rem + 1.657vw), 0.92rem);
   }
-}
-
-/* Hide the ⌘K kbd hint earlier — it's not essential and saves ~3rem. */
-@media (max-width: 1080px) and (min-width: 861px) {
   .site-header .vk-search button[data-open-modal] > kbd {
     display: none;
   }
 }
 
-/* Below 1024px, drop the "GitHub" text inside the pill — the icon plus
-   stars badge are unambiguous, and this saves ~60-70px of header width. */
-@media (max-width: 1024px) and (min-width: 861px) {
-  .site-header nav .github-button .gh-text {
-    display: none;
-  }
-}
-
-/* Below 940px, drop the stars badge entirely — at this width every saved
-   pixel matters and the badge text + border was the next biggest item. */
-@media (max-width: 940px) and (min-width: 861px) {
-  .site-header nav .github-button .gh-stars {
-    display: none;
-  }
-}
-
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .btn-menu {
     display: flex;
   }
