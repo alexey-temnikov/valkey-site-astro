@@ -1,7 +1,33 @@
 ---
-import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import fs from "node:fs";
+import path from "node:path";
+import yaml from "js-yaml";
 import { marked } from "marked";
-import participants from "../../data/participants.json";
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+
+type Participant = {
+  name: string;
+  link: string;
+  image?: { path: string; alt?: string };
+  company?: string;
+  offering?: string;
+};
+
+const intro = fs.readFileSync(
+  path.resolve("src/content/pages/participants.md"),
+  "utf8",
+);
+const introBody = intro.replace(/^---[\s\S]*?---\s*/, "");
+const introHtml = marked.parse(introBody, { async: false }) as string;
+
+const participants = yaml.load(
+  fs.readFileSync(path.resolve("src/data/participants.yml"), "utf8"),
+) as Participant[];
+
+participants.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
+const newParticipantUrl =
+  "https://github.com/valkey-io/valkey-io.github.io/issues/new?assignees=&labels=participant%2C+untriaged&projects=&template=add_participant_form_template.md&title=%5BPARTICIPANT%5D";
 ---
 
 <MarketingLayout
@@ -9,48 +35,37 @@ import participants from "../../data/participants.json";
   description="Organizations contributing to and supporting the Valkey project."
 >
   <section class="participants-page width-limiter">
-    <header>
-      <h1 class="page-h1">Participants</h1>
-      <p class="lead">
-        Valkey is supported by a diverse community of organizations
-        contributing code, expertise, managed services, and infrastructure.
-      </p>
-    </header>
+    <div class="subhead" set:html={introHtml} />
 
-    <div class="logo-wall">
-      {participants.map((p: any) => (
-        <a href={p.link} target="_blank" rel="noopener" class="logo-link" title={p.name}>
-          <img src={p.image.path} alt={p.image.alt} loading="lazy" />
-        </a>
-      ))}
+    <div class="participants-container">
+      <div id="participants-buttons">
+        <a
+          class="new-participants"
+          href={newParticipantUrl}
+          target="_blank"
+          rel="noopener"
+          title="become a new participant"
+          aria-label="Become a new participant"></a>
+      </div>
     </div>
 
-    <div class="profiles">
-      {participants.map((p: any) => (
-        <article class="profile">
-          <div class="profile-header">
-            <a href={p.link} target="_blank" rel="noopener">
-              <img src={p.image.path} alt={p.image.alt} />
-            </a>
-            <div>
-              <h2>
-                <a href={p.link} target="_blank" rel="noopener">{p.name}</a>
-              </h2>
-            </div>
+    <div class="participant-list">
+      {participants.map((p) => (
+        <div class={`participant-${p.name.toLowerCase()}`}>
+          <a href={p.link} class="participant-brand" target="_blank" rel="noopener">
+            {p.image && <img src={p.image.path} alt={p.image.alt ?? `${p.name} logo`} loading="lazy" />}
+          </a>
+          <div class="participant-info">
+            {p.offering && (
+              <>
+                <h3>Valkey offering:</h3>
+                <div set:html={marked.parse(p.offering, { async: false })} />
+              </>
+            )}
+            <h3>About the organization:</h3>
+            {p.company && <div set:html={marked.parse(p.company, { async: false })} />}
           </div>
-          {p.offering && (
-            <>
-              <h3>Valkey offering:</h3>
-              <div class="offering" set:html={marked.parse(p.offering, { async: false })} />
-            </>
-          )}
-          {p.company && (
-            <>
-              <h3>About the organization:</h3>
-              <div class="company" set:html={marked.parse(p.company, { async: false })} />
-            </>
-          )}
-        </article>
+        </div>
       ))}
     </div>
   </section>
@@ -60,62 +75,89 @@ import participants from "../../data/participants.json";
   .participants-page {
     padding: 3rem 1.5rem 5rem;
   }
-  .lead {
+  .subhead :global(h1) {
+    color: var(--valkey-text-strong);
+    margin: 0 0 1rem;
+  }
+  .subhead :global(p) {
     color: var(--valkey-text-light);
-    font-size: 1.1rem;
-    max-width: 52rem;
-    margin: 0 0 3rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 60rem;
+    margin: 0 0 1.5rem;
   }
-  .logo-wall {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 1.5rem 2rem;
-    margin-bottom: 4rem;
-    padding: 2rem;
-    background: var(--valkey-bg-soft);
-    border-radius: 12px;
+
+  .participants-container {
+    margin: 1.5rem 0 2.5rem;
+  }
+  #participants-buttons {
+    display: flex;
+    gap: 1rem;
+  }
+  .new-participants {
+    display: inline-flex;
     align-items: center;
-    justify-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.25rem;
+    border: 1px solid var(--valkey-line);
+    border-radius: 999px;
+    color: var(--valkey-text-strong);
+    text-decoration: none;
+    font-family: var(--valkey-cond);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: background 0.15s ease, color 0.15s ease;
   }
-  .logo-link img {
-    max-height: 60px;
-    max-width: 160px;
-    width: auto;
-    object-fit: contain;
-    filter: grayscale(30%);
-    transition: filter 0.2s ease;
+  .new-participants::after {
+    content: "Become a new participant";
   }
-  .logo-link:hover img {
-    filter: grayscale(0);
+  .new-participants:hover {
+    background: var(--valkey-text-strong);
+    color: var(--valkey-bg);
   }
-  .profiles {
+
+  .participant-list {
     display: flex;
     flex-direction: column;
     gap: 3rem;
   }
-  .profile {
+  .participant-list > div {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 2rem;
+    align-items: start;
     border-top: 1px solid var(--valkey-line);
     padding-top: 2rem;
   }
-  .profile-header {
+  .participant-brand {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 1rem;
+    justify-content: center;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    background: var(--valkey-bg-soft);
+    border: 1px solid var(--valkey-line-soft);
+    min-height: 96px;
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
-  .profile-header img {
-    max-width: 140px;
-    max-height: 60px;
+  .participant-brand img {
+    max-width: 180px;
+    max-height: 80px;
+    width: auto;
     object-fit: contain;
   }
-  .profile h2 {
-    margin: 0;
-    color: var(--valkey-text-strong);
+  /* Most vendor logos are dark-text on transparent. In dark mode the page
+     background is near-black, so we paint the brand card white-ish to keep
+     the original logos readable without per-logo CSS hacks. */
+  :global(html[data-theme="dark"]) .participant-brand {
+    background: #ffffff;
+    border-color: rgba(255, 255, 255, 0.12);
   }
-  .profile h2 a {
-    color: inherit;
+  :global(html[data-theme="dark"]) .participant-brand:hover {
+    background: #f5f7f7;
   }
-  .profile h3 {
+  .participant-info :global(h3) {
     font-family: var(--valkey-cond);
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -123,10 +165,24 @@ import participants from "../../data/participants.json";
     margin: 1rem 0 0.5rem;
     font-size: 1.05rem;
   }
-  .company,
-  .offering {
+  .participant-info :global(h3:first-child) {
+    margin-top: 0;
+  }
+  .participant-info :global(p) {
     color: var(--valkey-text-light);
     line-height: 1.6;
     margin: 0.5rem 0;
+  }
+  .participant-info :global(a) {
+    color: var(--valkey-link, #6983ff);
+  }
+
+  @media (max-width: 640px) {
+    .participant-list > div {
+      grid-template-columns: 1fr;
+    }
+    .participant-brand {
+      justify-content: flex-start;
+    }
   }
 </style>

@@ -5,7 +5,12 @@ import HomeHero from "../components/HomeHero.astro";
 import WhatsNewSection from "../components/WhatsNewSection.astro";
 import DocsCardsSection from "../components/DocsCardsSection.astro";
 import ParticipantsStrip from "../components/ParticipantsStrip.astro";
-import participants from "../data/participants.json";
+import fs from "node:fs";
+import path from "node:path";
+import yaml from "js-yaml";
+const participants = yaml.load(
+  fs.readFileSync(path.resolve("src/data/participants.yml"), "utf8"),
+) as any[];
 ---
 
 <MarketingLayout title="Valkey" bodyClass="homepage">

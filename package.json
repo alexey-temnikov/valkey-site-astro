@@ -15,8 +15,12 @@
     "@astrojs/rss": "^4.0.18",
     "@astrojs/starlight": "^0.39.1",
     "astro": "^6.2.2",
+    "js-yaml": "^4.1.1",
     "marked": "^18.0.3",
     "sharp": "^0.34.5",
     "unist-util-visit": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
   }
 }

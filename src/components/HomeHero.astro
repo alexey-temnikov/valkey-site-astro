@@ -3,7 +3,12 @@
 import HeroMetrics from "./HeroMetrics.astro";
 import { parseReleases, latestPerMajor } from "../lib/releases";
 import { getCollection } from "astro:content";
-import participants from "../data/participants.json";
+import fs from "node:fs";
+import path from "node:path";
+import yaml from "js-yaml";
+const participants = yaml.load(
+  fs.readFileSync(path.resolve("src/data/participants.yml"), "utf8"),
+) as any[];
 
 const releaseModules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
   string,
