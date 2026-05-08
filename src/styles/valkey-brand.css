@@ -672,7 +672,7 @@ starlight-menu-button + nav a[aria-current="page"],
    1.5rem) overflow around ~1100px and items wrap onto a second line.
    Tighten font and gap progressively so everything stays on one row down
    to 860px, where the hamburger takes over. */
-@media (max-width: 1100px) and (min-width: 861px) {
+@media (max-width: 1200px) and (min-width: 861px) {
   .site-header nav {
     gap: 0.85rem;
   }
