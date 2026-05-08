@@ -1,0 +1,321 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+
+// 1:1 port of valkey-io.github.io's
+// content/try-valkey/pyconafrica-workshop.md (Zola). Same V86 emulator as
+// the default /try-valkey/ page, but pointing at the workshop-specific
+// state + filesystem snapshots that ship Python plus a preactivated
+// tmux session with valkey-cli.
+const STATE_FILE = "https://download.valkey.io/try-me-valkey/pyconafrica/states/tmux-cli-activated.bin.gz";
+const FILESYSTEM_BASE_URL = "https://download.valkey.io/try-me-valkey/pyconafrica/fs/alpine-rootfs-flat";
+const FILESYSTEM_BASE_FS = "https://download.valkey.io/try-me-valkey/pyconafrica/fs/alpine-fs.json";
+
+// v86 toolchain + styling lives on download.valkey.io alongside the image.
+const V86_BASE = "https://download.valkey.io/try-me-valkey/vos";
+---
+
+<MarketingLayout
+  title="Try Valkey for PyCon Africa 2025 · Valkey"
+  description="In-browser Valkey server, valkey-cli, and Python — workshop image for PyCon Africa 2025, powered by a WebAssembly x86 emulator."
+>
+  {/* External stylesheets: xterm terminal renderer + valkey-try-me branding */}
+  <link rel="stylesheet" href={`${V86_BASE}/xterm/xterm.css`} />
+  <link rel="stylesheet" href={`${V86_BASE}/valkey-try-me.css`} />
+
+  {/* V86 + xterm + pako + the V86<->xterm serial adapter. */}
+  <script is:inline src={`${V86_BASE}/v86/libv86.js`}></script>
+  <script is:inline src={`${V86_BASE}/xterm/xterm.min.js`}></script>
+  <script is:inline src={`${V86_BASE}/pako/pako.min.js`}></script>
+  <script is:inline src={`${V86_BASE}/v86/serial_xterm.js`}></script>
+
+  <section class="try-valkey width-limiter">
+    <header class="try-valkey__intro">
+      <h1>Try Valkey for PyCon Africa 2025</h1>
+      <p>
+        This is an in-browser Valkey server, <code>valkey-cli</code>, and Python,
+        that runs directly within your browser using a
+        <a href="https://github.com/copy/v86" target="_blank" rel="noopener">V86</a>
+        emulator, requiring no external installations. You will use this to
+        complete the workshop.
+      </p>
+      <p>Try it out below:</p>
+    </header>
+
+    <div id="terminalWrapper" class="container" style="display: none;">
+      <div id="terminal-container"></div>
+    </div>
+
+    <div id="warningContainer" style="text-align: center; margin-top: 20px;">
+      <button id="startButton" style="padding: 10px 20px; font-size: 18px; margin-top: 10px; cursor: pointer;">
+        Load Emulator
+      </button>
+      <p>This emulator will download approximately 50MB of data.</p>
+    </div>
+
+    <div id="loadingContainer" style="display: none;">
+      <p id="progressText">Preparing to load...</p>
+      <progress id="progressBar" value="0" max="100"></progress>
+    </div>
+  </section>
+
+  <script
+    is:inline
+    define:vars={{ STATE_FILE, FILESYSTEM_BASE_URL, FILESYSTEM_BASE_FS, V86_BASE }}
+  >
+    "use strict";
+
+    // NOTE: This script is a 1:1 port of the Zola reference at
+    // templates/valkey-try-me.html and mirrors the default /try-valkey/
+    // page. The only differences between the two pages are the state/fs
+    // URLs bound above and the headline copy.
+
+    const FILE_URL = STATE_FILE;
+    const CACHE_KEY = "valkey_pyconafrica_binary_cache";
+    const LAST_MODIFIED_KEY = "valkey_pyconafrica_last_modified";
+    let emulator;
+
+    async function openIndexedDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("binaryCacheDB", 1);
+        request.onerror = () => reject("Error opening IndexedDB");
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          db.createObjectStore("cache", { keyPath: "key" });
+        };
+      });
+    }
+
+    async function getCachedBinary(db) {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(["cache"], "readonly");
+        const objectStore = transaction.objectStore("cache");
+        const request = objectStore.get(CACHE_KEY);
+        request.onerror = () => reject("Error retrieving cached binary");
+        request.onsuccess = () =>
+          resolve(request.result ? request.result.data : null);
+      });
+    }
+
+    async function saveBinaryToCache(db, data) {
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(["cache"], "readwrite");
+        const objectStore = transaction.objectStore("cache");
+        const request = objectStore.put({ key: CACHE_KEY, data });
+        request.onerror = () => reject("Error saving binary to cache");
+        request.onsuccess = () => resolve();
+      });
+    }
+
+    async function checkIfUpdated() {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("HEAD", FILE_URL, true);
+        xhr.onload = () => {
+          const serverLastModified = xhr.getResponseHeader("Last-Modified");
+          const cachedLastModified = localStorage.getItem(LAST_MODIFIED_KEY);
+          if (!serverLastModified || serverLastModified !== cachedLastModified) {
+            localStorage.setItem(LAST_MODIFIED_KEY, serverLastModified);
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        };
+        xhr.onerror = () => reject("Error checking file version");
+        xhr.send();
+      });
+    }
+
+    function downloadAndDecompressBinary(callback) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", FILE_URL, true);
+      xhr.responseType = "arraybuffer";
+
+      xhr.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          document.getElementById("progressBar").value = percentComplete;
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          document.getElementById("progressText").innerText =
+            "Decompressing image...";
+          const decompressedData = pako.ungzip(new Uint8Array(xhr.response));
+          callback(decompressedData);
+        }
+      };
+
+      xhr.onerror = () => {
+        document.getElementById("progressText").innerText = "Download failed!";
+      };
+
+      xhr.send();
+    }
+
+    async function loadEmulator(decompressedData) {
+      const progressText = document.getElementById("progressText");
+
+      const blob = new Blob([decompressedData], {
+        type: "application/octet-stream",
+      });
+      const imgUrl = URL.createObjectURL(blob);
+
+      progressText.innerText = "Starting emulator...";
+
+      emulator = new V86({
+        wasm_path: `${V86_BASE}/v86/v86.wasm`,
+        memory_size: 512 * 1024 * 1024,
+        bios: { url: `${V86_BASE}/v86/bios/seabios.bin` },
+        filesystem: {
+          baseurl: FILESYSTEM_BASE_URL,
+          basefs: FILESYSTEM_BASE_FS,
+        },
+        autostart: true,
+        bzimage_initrd_from_filesystem: true,
+        cmdline:
+          "rw root=host9p rootfstype=9p rootflags=trans=virtio,cache=loose modules=virtio_pci tsc=reliable",
+        initial_state: { url: imgUrl },
+        disable_mouse: true,
+        disable_keyboard: true,
+        disable_speaker: true,
+      });
+
+      await new Promise((resolve) =>
+        emulator.add_listener("emulator-ready", resolve)
+      );
+
+      const serialAdapter = new SerialAdapterXtermJS(
+        document.getElementById("terminal-container"),
+        emulator.bus
+      );
+      serialAdapter.show();
+
+      document.getElementById("loadingContainer").style.display = "none";
+      document.getElementById("terminalWrapper").style.display = "flex";
+
+      if (emulator) {
+        resetInactivityTimer();
+        ["mousemove", "keydown", "touchstart"].forEach((event) => {
+          window.addEventListener(event, resetInactivityTimer);
+        });
+
+        serialAdapter.term.onKey(() => resetInactivityTimer());
+        serialAdapter.term.onData(() => resetInactivityTimer());
+        serialAdapter.term.onCursorMove(() => resetInactivityTimer());
+      }
+    }
+
+    let inactivityTimeout;
+    const INACTIVITY_LIMIT = 60 * 1000 * 10; // 10 minutes
+
+    function resetInactivityTimer() {
+      if (!emulator) {
+        console.warn("Emulator is not initialized yet.");
+        return;
+      }
+
+      clearTimeout(inactivityTimeout);
+
+      inactivityTimeout = setTimeout(() => {
+        if (emulator.is_running()) {
+          console.log("VM paused due to inactivity.");
+          emulator.stop();
+        }
+      }, INACTIVITY_LIMIT);
+
+      if (!emulator.is_running()) {
+        console.log("VM resumed");
+        emulator.run();
+      }
+    }
+
+    window.addEventListener("load", () => {
+      const startButton = document.getElementById("startButton");
+      startButton.addEventListener("click", async () => {
+        document.getElementById("warningContainer").style.display = "none";
+        document.getElementById("loadingContainer").style.display = "block";
+        document.getElementById("progressText").innerText =
+          "Preparing to load...";
+
+        const db = await openIndexedDB();
+
+        try {
+          const needsDownload = await checkIfUpdated();
+
+          if (needsDownload) {
+            downloadAndDecompressBinary(async (decompressedData) => {
+              await saveBinaryToCache(db, decompressedData);
+              loadEmulator(decompressedData);
+            });
+          } else {
+            const cachedBinary = await getCachedBinary(db);
+            if (cachedBinary) {
+              loadEmulator(cachedBinary);
+            } else {
+              downloadAndDecompressBinary(async (decompressedData) => {
+                await saveBinaryToCache(db, decompressedData);
+                loadEmulator(decompressedData);
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error loading binary: ", error);
+          document.getElementById("progressText").innerText =
+            "Failed to load binary.";
+        }
+      });
+    });
+  </script>
+</MarketingLayout>
+
+<style>
+  .try-valkey {
+    padding: 3rem 1.5rem 5rem;
+  }
+  .try-valkey__intro h1 {
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    margin: 0 0 0.5rem;
+  }
+  .try-valkey__intro p {
+    color: var(--valkey-text-light);
+    max-width: 52rem;
+    margin: 0 0 0.75rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+  .try-valkey__intro p + p {
+    margin-bottom: 2rem;
+  }
+  #terminalWrapper {
+    flex-direction: column;
+    margin-top: 1.5rem;
+  }
+  #terminal-container {
+    width: 100%;
+    min-height: 480px;
+  }
+  #warningContainer button {
+    background: var(--valkey-blue-300);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  #warningContainer button:hover {
+    background: var(--valkey-blue-200);
+  }
+  #loadingContainer {
+    max-width: 40rem;
+    margin: 1.5rem auto 0;
+    text-align: center;
+  }
+  #loadingContainer progress {
+    width: 100%;
+    height: 12px;
+  }
+</style>
