@@ -390,10 +390,12 @@ const metricTiles = [
 
   .vk-hero-copy { text-align: center; }
   .vk-hero-heading {
-    /* Matches the reference sass/_valkey.scss .hero-heading:
-         mobile 4rem (@ 10px base → 40px), desktop 7rem (→ 70px),
-         letter-spacing 2px. We convert to browser-default rem units. */
-    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    /* Matches the reference sass/_valkey.scss exactly:
+         body + h1-h6 both @include sans-serif = "Open Sans".
+         .hero-heading sets font-weight 700, size 4rem mobile → 7rem
+         desktop (@ 10px base = 40px → 70px), letter-spacing 2px,
+         line-height 1. We convert to browser-default rem units. */
+    font-family: var(--valkey-sans, "Open Sans", "Segoe UI", Tahoma, sans-serif);
     font-weight: 700;
     font-size: clamp(2.5rem, 5.5vw, 4.375rem); /* 40px → 70px */
     line-height: 1;
