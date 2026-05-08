@@ -19,3 +19,6 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# Synced from ../valkey-doc at build time (see scripts/sync-topics.sh)
+src/content/docs/topics/

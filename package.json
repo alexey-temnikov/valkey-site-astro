@@ -3,9 +3,10 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
-    "build": "astro build && node scripts/fix-glide-links.mjs",
+    "sync-topics": "bash scripts/sync-topics.sh",
+    "dev": "bash scripts/sync-topics.sh && astro dev",
+    "start": "bash scripts/sync-topics.sh && astro dev",
+    "build": "bash scripts/sync-topics.sh && astro build && node scripts/fix-glide-links.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "astro": "astro"
