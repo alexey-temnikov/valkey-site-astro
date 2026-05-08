@@ -11,18 +11,25 @@
 @layer valkey-sl-fallback {
   :root,
   ::backdrop {
-    /* Subset of Starlight's --sl-color-* + --sl-text-* tokens, mapped to the
-       Valkey light palette. Used by `<Search />` on every page. */
-    --sl-color-white: #ffffff;
-    --sl-color-gray-1: #1f2933;
-    --sl-color-gray-2: #002a3a;
-    --sl-color-gray-3: #647782;
-    --sl-color-gray-4: #8e9ba4;
-    --sl-color-gray-5: #ccd3d6;
-    --sl-color-gray-6: #f5f7f7;
-    --sl-color-black: #ffffff;
+    /* Subset of Starlight's `--sl-color-*` + `--sl-text-*` tokens needed by
+       the reused `<Search />` component on marketing pages.
+
+       Starlight's tokens are theme-relative, NOT literal:
+         --sl-color-black = the page background (white in light mode)
+         --sl-color-white = the highest-contrast text color (dark in light mode)
+         --sl-color-gray-1..6 goes darkest→lightest in light mode (inverse of dark)
+       We follow the same convention so the search input renders dark text on
+       a light background. */
+    --sl-color-white: #1a2026;          /* darkest text */
+    --sl-color-gray-1: #002a3a;          /* primary text (var(--valkey-text)) */
+    --sl-color-gray-2: #1f2933;
+    --sl-color-gray-3: #4c5760;
+    --sl-color-gray-4: #647782;          /* var(--valkey-text-light) */
+    --sl-color-gray-5: #ccd3d6;          /* var(--valkey-line) — borders */
+    --sl-color-gray-6: #f5f7f7;          /* var(--valkey-bg-soft) — subtle bg */
+    --sl-color-black: #ffffff;           /* page background */
     --sl-color-text: #002a3a;
-    --sl-color-text-invert: #ffffff;
+    --sl-color-text-invert: #ffffff;     /* text on accent (e.g. mark) */
     --sl-color-backdrop-overlay: rgba(10, 20, 30, 0.55);
     --sl-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.3);
     --sl-text-2xs: 0.7rem;
