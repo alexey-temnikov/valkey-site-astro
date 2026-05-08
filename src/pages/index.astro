@@ -793,6 +793,11 @@ const metricTiles = [
     border-radius: 18px;
     overflow: hidden;
     position: relative;
+    /* Make the <li> a flex parent so the <a> child can use flex:1 to
+       fill the row height reliably (grid + height:100% creates a
+       circular sizing reference that clips content). */
+    display: flex;
+    flex-direction: column;
     transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.25s ease;
     box-shadow: 0 10px 30px rgba(48, 24, 110, 0.25);
   }
@@ -815,7 +820,7 @@ const metricTiles = [
   .vk-docs-card a {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
     padding: 2rem 1.75rem;
     color: #fff;
     text-decoration: none;
