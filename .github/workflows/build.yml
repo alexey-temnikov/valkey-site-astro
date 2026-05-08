@@ -129,7 +129,10 @@ jobs:
             cd "$GITHUB_WORKSPACE/valkey-glide-docs"
             # Inject base path for sub-path hosting
             sed -i '/^  site:/a\  base: "/glide/",' astro.config.mjs
-            pnpm install --frozen-lockfile
+            # pnpm-workspace.yaml has onlyBuiltDependencies but no packages
+            # field, which confuses pnpm 9 in non-workspace mode
+            rm -f pnpm-workspace.yaml
+            pnpm install --no-frozen-lockfile
             pnpm build
             mv dist "$GITHUB_WORKSPACE/$PROJECT_ROOT/public/glide"
           else
