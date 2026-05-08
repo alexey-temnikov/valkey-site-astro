@@ -170,6 +170,8 @@ const allCommandsSorted = Object.values(byGroup)
     font-size: 1rem;
     border: 1px solid var(--valkey-line);
     border-radius: 6px;
+    background: var(--valkey-bg-elevated);
+    color: var(--valkey-text);
   }
   #command-search:focus {
     outline: 2px solid var(--valkey-blue-300);
@@ -191,7 +193,7 @@ const allCommandsSorted = Object.values(byGroup)
   }
   .group-jump a {
     padding: 0.35rem 0.75rem;
-    background: #fff;
+    background: var(--valkey-bg-elevated);
     border: 1px solid var(--valkey-line);
     border-radius: 999px;
     font-size: 0.85rem;
@@ -200,7 +202,7 @@ const allCommandsSorted = Object.values(byGroup)
   }
   .group-jump a:hover {
     background: var(--valkey-blue-300);
-    color: #fff;
+    color: var(--valkey-on-accent);
     border-color: var(--valkey-blue-300);
     text-decoration: none;
   }
@@ -212,7 +214,7 @@ const allCommandsSorted = Object.values(byGroup)
     font-family: var(--valkey-cond);
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     margin: 0 0 0.25rem;
     font-size: 1.6rem;
   }
@@ -240,7 +242,7 @@ const allCommandsSorted = Object.values(byGroup)
     vertical-align: top;
   }
   .command-table th a {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
   }
   .command-table th code {
     font-family: var(--valkey-mono);
@@ -267,7 +269,7 @@ const allCommandsSorted = Object.values(byGroup)
   .alpha-section h2 {
     font-family: var(--valkey-cond);
     font-size: 1.6rem;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     margin-bottom: 1rem;
   }
   .alpha-list {
@@ -282,7 +284,7 @@ const allCommandsSorted = Object.values(byGroup)
     break-inside: avoid;
   }
   .alpha-list a {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
   }
   @media (max-width: 768px) {
     .alpha-list {

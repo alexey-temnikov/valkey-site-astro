@@ -54,8 +54,26 @@ const isActive = (href: string) =>
 
       <Search class="vk-search" />
 
+      <button
+        type="button"
+        class="theme-toggle"
+        aria-label="Toggle light/dark theme"
+        title="Toggle light/dark theme"
+        data-theme-toggle
+      >
+        {/* Sun icon — shown when dark theme is active (click to go light). */}
+        <svg class="theme-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+        </svg>
+        {/* Moon icon — shown in light theme (click to go dark). */}
+        <svg class="theme-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
       <a href="https://github.com/valkey-io" class="github-button" target="_blank" rel="noopener" aria-label="Valkey on GitHub">
-        <img src="/img/IconGithub.svg" alt="" width="16" height="16" />
+        <img src="/img/IconGithub.svg" alt="" width="16" height="16" class="gh-icon" />
         <span class="gh-text">GitHub</span>
         <span class="gh-stars" data-github-stars hidden></span>
       </a>
@@ -75,6 +93,33 @@ const isActive = (href: string) =>
     const open = toggle.getAttribute("aria-expanded") === "true";
     toggle.setAttribute("aria-expanded", String(!open));
     nav?.classList.toggle("mobile-open", !open);
+  });
+
+  // Theme toggle. Uses the same `starlight-theme` localStorage key that
+  // Starlight's ThemeProvider/ThemeSelect use, so toggling here matches the
+  // Starlight setting on docs pages without a second source of truth.
+  // The actual <html data-theme="..."> attribute is set by an inline script
+  // in MarketingLayout (and Starlight's ThemeProvider on docs pages) before
+  // first paint, so this listener only handles user-initiated toggles.
+  const STORAGE_KEY = "starlight-theme";
+  const themeBtn = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+
+  function currentTheme(): "light" | "dark" {
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  }
+  function applyTheme(t: "light" | "dark") {
+    document.documentElement.dataset.theme = t;
+    try {
+      localStorage.setItem(STORAGE_KEY, t);
+    } catch {}
+    // Keep Starlight's <select> picker (if mounted on docs pages) in sync.
+    const w = window as any;
+    if (w.StarlightThemeProvider?.updatePickers) {
+      try { w.StarlightThemeProvider.updatePickers(t); } catch {}
+    }
+  }
+  themeBtn?.addEventListener("click", () => {
+    applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
 
   // GitHub stars for valkey-io/valkey, cached for 1 hour

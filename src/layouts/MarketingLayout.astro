@@ -29,6 +29,26 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    {/* Theme bootstrap. Runs before any CSS paints to prevent a light/dark
+        flash on first load. Reads the same `starlight-theme` localStorage
+        key Starlight uses, so the marketing pages and docs pages stay in
+        sync. Falls back to OS preference. */}
+    <script is:inline>
+      (() => {
+        try {
+          const stored = localStorage.getItem("starlight-theme");
+          const theme = stored
+            ? stored
+            : window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+          document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+
     {/* Crawler / legacy-browser hints, ported verbatim from Zola head.html */}
     <meta name="ROBOTS" content="ALL" />
     <meta name="MSSmartTagsPreventParsing" content="true" />
@@ -49,7 +69,8 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
     <meta name="msapplication-TileColor" content="#2d89ef" />
     <meta name="msapplication-TileImage" content="/img/favicon/mstile-144x144.png" />
     <meta name="msapplication-config" content="/img/favicon/browserconfig.xml" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e1217" media="(prefers-color-scheme: dark)" />
 
     {/* Preload the most-used webfont to avoid FOIT on the hero */}
     <link rel="preload" href="/fonts/open-sans/opensans-latin-normal-400-v20.woff2" as="font" type="font/woff2" crossorigin />

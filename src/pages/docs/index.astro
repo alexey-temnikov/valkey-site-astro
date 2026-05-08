@@ -78,18 +78,18 @@ const sections = [
     border: 1px solid var(--valkey-line);
     border-radius: 12px;
     padding: 1.75rem;
-    background: #fff;
+    background: var(--valkey-bg-elevated);
     color: inherit;
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
   }
   .hub-card:hover {
     text-decoration: none;
     border-color: var(--valkey-blue-100);
-    box-shadow: 0 8px 24px rgba(0, 85, 166, 0.08);
+    box-shadow: var(--valkey-shadow-card);
   }
   .hub-card h2 {
     margin: 0 0 0.5rem;
-    color: var(--valkey-text);
+    color: var(--valkey-text-strong);
     font-size: 1.3rem;
   }
   .hub-card p {
@@ -97,7 +97,7 @@ const sections = [
     margin: 0 0 1rem;
   }
   .card-button {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     font-weight: 600;
   }
 </style>

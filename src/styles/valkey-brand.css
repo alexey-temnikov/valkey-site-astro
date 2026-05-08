@@ -37,6 +37,25 @@
     --sl-text-xl: 1rem;
   }
 
+  /* Dark-mode fallback for the same Starlight tokens used by Search on
+     marketing pages. Mirrors Starlight's own dark-theme palette so the
+     search input/dialog reads correctly on dark backgrounds. */
+  :root[data-theme="dark"],
+  :root[data-theme="dark"] ::backdrop {
+    --sl-color-white: #ffffff;
+    --sl-color-gray-1: #eceef2;
+    --sl-color-gray-2: #c0c2c7;
+    --sl-color-gray-3: #888b96;
+    --sl-color-gray-4: #545861;
+    --sl-color-gray-5: #353841;
+    --sl-color-gray-6: #24272f;
+    --sl-color-black: #17181c;
+    --sl-color-text: #eceef2;
+    --sl-color-text-invert: #17181c;
+    --sl-color-backdrop-overlay: rgba(0, 0, 0, 0.66);
+    --sl-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+
   /* Visibility utility classes Starlight components rely on (e.g. the
      Search dialog's `Cancel` button uses `sl-flex md:sl-hidden`). These
      normally live in @layer starlight.utils via util.css which only loads
@@ -109,7 +128,12 @@
   src: url("/fonts/fira-mono/firamono-latin-normal-400-v9.woff2") format("woff2");
 }
 
-/* -------- Brand tokens -------- */
+/* -------- Brand tokens --------
+   Theme-aware tokens. Light-mode values live on :root; dark-mode overrides
+   are scoped to :root[data-theme="dark"]. The brand palette itself
+   (blues, purples, deep-blue, pacific-sky) stays constant so Valkey's
+   identity reads the same on both themes — we only swap surface, text,
+   line, and a handful of section backgrounds. */
 :root {
   --valkey-blue-300: #0055a6;
   --valkey-blue-200: #005eb8;
@@ -122,11 +146,52 @@
   --valkey-purple-200: #692a84;
   --valkey-purple-100: #8736aa;
 
+  /* Surface + text — light-mode defaults. */
   --valkey-text: #002a3a;
   --valkey-text-light: #647782;
+  --valkey-text-strong: #003b5c;
   --valkey-line: #ccd3d6;
+  --valkey-line-soft: #e6e9ea;
   --valkey-bg: #ffffff;
   --valkey-bg-soft: #f5f7f7;
+  --valkey-bg-elevated: #ffffff;
+  --valkey-bg-code: #1e1e2e;
+  --valkey-bg-code-text: #f5f5f5;
+  --valkey-shadow-card: 0 4px 16px rgba(0, 85, 166, 0.08);
+  --valkey-shadow-card-hover: 0 8px 24px rgba(0, 85, 166, 0.12);
+  --valkey-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --valkey-shadow-deep: 0 16px 40px rgba(48, 24, 110, 0.35);
+  --valkey-on-accent: #ffffff;
+  --valkey-link: #0055a6;
+  --valkey-link-hover: #337ec6;
+
+  /* Section accents — used by hero, "what's new", "docs" cards, etc. */
+  --valkey-section-hero-bg: #30186e;
+  --valkey-section-hero-overlay: linear-gradient(
+    to bottom,
+    rgba(48, 24, 110, 0.15),
+    rgba(48, 24, 110, 0.75)
+  );
+  --valkey-section-hero-fade: linear-gradient(
+    to bottom,
+    rgba(48, 24, 110, 0) 60%,
+    rgba(48, 24, 110, 1) 100%
+  );
+  --valkey-section-whatsnew-bg: linear-gradient(rgb(48, 23, 110), rgb(105, 131, 255));
+  --valkey-section-docs-bg: #6983ff;
+  --valkey-section-docs-card-bg: #2d2471;
+  --valkey-section-participants-bg: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
+  --valkey-section-participants-card-bg: #ffffff;
+  --valkey-section-participants-card-hover: #f9f7fe;
+  --valkey-section-styled-title-bg: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
+  --valkey-section-page-subhead-bg: linear-gradient(
+    135deg,
+    var(--valkey-purple-300) 0%,
+    var(--valkey-purple-200) 100%
+  );
+  --valkey-banner-bg: var(--valkey-purple-300);
+  --valkey-footer-bg: #1a2026;
+  --valkey-footer-text: #b3c2cb;
 
   --valkey-sans: "Open Sans", "Segoe UI", Tahoma, sans-serif;
   --valkey-cond: "Open Sans Condensed", Impact, "Franklin Gothic Bold", sans-serif;
@@ -152,6 +217,67 @@
      padding (24px) + 1px bottom border). Set --sl-nav-height to match so
      content and TOC sit flush against the header on docs pages. */
   --sl-nav-height: 4.1875rem;
+
+  color-scheme: light;
+}
+
+/* -------- Dark-mode brand tokens --------
+   Activated via <html data-theme="dark"> set by an inline init script in
+   MarketingLayout (and Starlight's own ThemeProvider on docs pages). */
+:root[data-theme="dark"] {
+  --valkey-text: #e3e8ef;
+  --valkey-text-light: #9aa3b1;
+  --valkey-text-strong: #c8d6f0;
+  --valkey-line: #2c333d;
+  --valkey-line-soft: #232931;
+  --valkey-bg: #0e1217;
+  --valkey-bg-soft: #181d24;
+  --valkey-bg-elevated: #1a2027;
+  --valkey-bg-code: #0a0b10;
+  --valkey-bg-code-text: #e3e8ef;
+  --valkey-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --valkey-shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.55);
+  --valkey-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --valkey-shadow-deep: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --valkey-on-accent: #ffffff;
+  --valkey-link: #6da4e8;
+  --valkey-link-hover: #97c2f3;
+
+  --valkey-section-hero-bg: #1a0f3d;
+  --valkey-section-hero-overlay: linear-gradient(
+    to bottom,
+    rgba(20, 10, 50, 0.45),
+    rgba(20, 10, 50, 0.85)
+  );
+  --valkey-section-hero-fade: linear-gradient(
+    to bottom,
+    rgba(14, 18, 23, 0) 60%,
+    rgba(14, 18, 23, 1) 100%
+  );
+  --valkey-section-whatsnew-bg: linear-gradient(rgb(28, 14, 70), rgb(58, 76, 168));
+  --valkey-section-docs-bg: #2e3a8a;
+  --valkey-section-docs-card-bg: #1a1545;
+  --valkey-section-participants-bg: linear-gradient(180deg, #2e3a8a 0%, #4d4670 100%);
+  --valkey-section-participants-card-bg: #1a2027;
+  --valkey-section-participants-card-hover: #232a35;
+  --valkey-section-styled-title-bg: linear-gradient(rgb(34, 22, 64), rgb(44, 48, 117));
+  --valkey-section-page-subhead-bg: linear-gradient(
+    135deg,
+    #2c103a 0%,
+    #3f1953 100%
+  );
+  --valkey-banner-bg: #2c103a;
+  --valkey-footer-bg: #07090c;
+  --valkey-footer-text: #9aa3b1;
+
+  /* Brand-relative tweaks for dark mode: link/accent colours need to lift
+     so they retain WCAG AA contrast against the deeper backgrounds. */
+  --sl-color-accent: #4d8fd9;
+  --sl-color-accent-high: #97c2f3;
+  --sl-color-accent-low: #1a2c44;
+  --sl-color-text-accent: #6da4e8;
+
+  color-scheme: dark;
 }
 
 /* On Starlight-rendered pages our SiteHeader is mounted inside Starlight's
@@ -171,7 +297,16 @@
   --sl-color-bg-sidebar: #ffffff;
   --sl-color-text: var(--valkey-text);
   --sl-color-hairline: var(--valkey-line);
-  --sl-color-hairline-light: #e6e9ea;
+  --sl-color-hairline-light: var(--valkey-line-soft);
+}
+
+:root[data-theme="dark"] {
+  --sl-color-bg: var(--valkey-bg);
+  --sl-color-bg-nav: var(--valkey-bg);
+  --sl-color-bg-sidebar: var(--valkey-bg);
+  --sl-color-text: var(--valkey-text);
+  --sl-color-hairline: var(--valkey-line);
+  --sl-color-hairline-light: var(--valkey-line-soft);
 }
 
 /* -------- Global marketing styles -------- */
@@ -180,10 +315,11 @@ body {
   color: var(--valkey-text);
   background: var(--valkey-bg);
   margin: 0;
+  transition: var(--valkey-theme-transition);
 }
 
 a {
-  color: var(--valkey-blue-300);
+  color: var(--valkey-link);
   text-decoration: none;
 }
 a:hover {
@@ -211,7 +347,7 @@ starlight-menu-button + nav a[aria-current="page"],
 
 /* -------- Announcement banner -------- */
 .announcement-banner {
-  background: var(--valkey-purple-300);
+  background: var(--valkey-banner-bg);
   color: #fff;
   font-size: 0.9rem;
   padding: 0.75rem 1.5rem;
@@ -239,10 +375,11 @@ starlight-menu-button + nav a[aria-current="page"],
 /* -------- Header / Nav -------- */
 .site-header {
   border-bottom: 1px solid var(--valkey-line);
-  background: #fff;
+  background: var(--valkey-bg);
   position: sticky;
   top: 0;
   z-index: 20;
+  transition: var(--valkey-theme-transition);
   /* Lock the chrome at exactly 67px across all viewports and contexts
      (marketing-desktop, marketing-mobile, docs-desktop, docs-mobile-
      hamburger). The .inner flex row centers within this fixed height
@@ -276,7 +413,7 @@ starlight-menu-button + nav a[aria-current="page"],
 }
 .site-header nav > a,
 .site-header nav .has-submenu > a {
-  color: var(--valkey-blue-300);
+  color: var(--valkey-link);
   font-weight: 600;
   /* Fluid font in the desktop range only (1025-1200px+). Below 1025px the
      hamburger media query takes over.
@@ -292,8 +429,8 @@ starlight-menu-button + nav a[aria-current="page"],
 }
 .site-header nav > a.active,
 .site-header nav .has-submenu > a.active {
-  color: var(--valkey-deep-blue);
-  border-bottom: 2px solid var(--valkey-blue-300);
+  color: var(--valkey-text-strong);
+  border-bottom: 2px solid var(--valkey-link);
 }
 .site-header nav .has-submenu {
   position: relative;
@@ -304,10 +441,10 @@ starlight-menu-button + nav a[aria-current="page"],
   left: 50%;
   transform: translateX(-50%);
   min-width: 14rem;
-  background: #fff;
+  background: var(--valkey-bg-elevated);
   border: 1px solid var(--valkey-line);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   padding: 0.5rem;
   display: none;
   flex-direction: column;
@@ -321,7 +458,7 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav .submenu a {
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  color: var(--valkey-blue-300);
+  color: var(--valkey-link);
 }
 .site-header nav .submenu a:hover {
   background: var(--valkey-bg-soft);
@@ -337,6 +474,7 @@ starlight-menu-button + nav a[aria-current="page"],
   color: var(--valkey-text);
   white-space: nowrap;
   flex-shrink: 0;
+  background: var(--valkey-bg);
 }
 .site-header nav .github-button:hover {
   background: var(--valkey-bg-soft);
@@ -347,6 +485,18 @@ starlight-menu-button + nav a[aria-current="page"],
    accessibility (icon retains aria-label on the anchor). */
 .site-header nav .github-button .gh-text {
   display: inline;
+}
+
+/* The GitHub mark is `/img/IconGithub.svg`, hard-coded fill="white" — fine
+   on dark backgrounds but invisible on the light-mode pill. Apply
+   `filter: invert(1)` in light mode to flip white→black. Dark mode keeps
+   the icon white (no filter), matching the surrounding text color. */
+.site-header nav .github-button .gh-icon {
+  flex-shrink: 0;
+  filter: invert(1);
+}
+:root[data-theme="dark"] .site-header nav .github-button .gh-icon {
+  filter: none;
 }
 
 /* -------- Search trigger (Starlight Search reused on every page) --------
@@ -393,7 +543,7 @@ starlight-menu-button + nav a[aria-current="page"],
   font-family: var(--valkey-mono);
   font-size: 0.7rem;
   line-height: 1;
-  background: #fff;
+  background: var(--valkey-bg);
   border: 1px solid var(--valkey-line);
   border-bottom-width: 2px;
   border-radius: 4px;
@@ -406,17 +556,13 @@ starlight-menu-button + nav a[aria-current="page"],
 /* Page header bands. */
 .page-subhead,
 .styled-title {
-  background: linear-gradient(
-    135deg,
-    var(--valkey-purple-300) 0%,
-    var(--valkey-purple-200) 100%
-  );
+  background: var(--valkey-section-page-subhead-bg);
   color: #fff;
   padding: 2.5rem 1.5rem;
   text-align: center;
 }
 .styled-title {
-  background: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
+  background: var(--valkey-section-styled-title-bg);
   padding: 60px 20px;
 }
 .page-subhead .page-title,
@@ -448,7 +594,7 @@ starlight-menu-button + nav a[aria-current="page"],
   margin-bottom: 1.5rem;
 }
 .breadcrumbs a {
-  color: var(--valkey-blue-300);
+  color: var(--valkey-link);
 }
 .breadcrumbs .sep {
   margin: 0 0.4rem;
@@ -461,7 +607,7 @@ starlight-menu-button + nav a[aria-current="page"],
   border-top: 1px solid var(--valkey-line);
 }
 .post-footer .back {
-  color: var(--valkey-blue-300);
+  color: var(--valkey-link);
   font-weight: 600;
 }
 
@@ -481,7 +627,7 @@ starlight-menu-button + nav a[aria-current="page"],
   font-family: var(--valkey-cond);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: var(--valkey-deep-blue);
+  color: var(--valkey-text-strong);
   margin: 0;
 }
 
@@ -505,7 +651,7 @@ starlight-menu-button + nav a[aria-current="page"],
   line-height: 1.7;
 }
 .prose a {
-  color: var(--valkey-blue-300);
+  color: var(--valkey-link);
 }
 .prose ul,
 .prose ol {
@@ -515,18 +661,18 @@ starlight-menu-button + nav a[aria-current="page"],
   margin-bottom: 0.4rem;
 }
 .prose strong {
-  color: var(--valkey-deep-blue);
+  color: var(--valkey-text-strong);
 }
 .prose h2 {
   font-family: var(--valkey-cond);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: var(--valkey-deep-blue);
+  color: var(--valkey-text-strong);
   margin-top: 2rem;
   font-size: 1.5rem;
 }
 .prose h3 {
-  color: var(--valkey-deep-blue);
+  color: var(--valkey-text-strong);
   margin-top: 1.5rem;
   font-size: 1.1rem;
 }
@@ -542,8 +688,8 @@ starlight-menu-button + nav a[aria-current="page"],
   font-size: 0.9em;
 }
 .prose pre {
-  background: #1e1e2e;
-  color: #f5f5f5;
+  background: var(--valkey-bg-code);
+  color: var(--valkey-bg-code-text);
   padding: 1rem 1.25rem;
   border-radius: 8px;
   overflow-x: auto;
@@ -604,14 +750,17 @@ starlight-menu-button + nav a[aria-current="page"],
   display: block;
   width: 22px;
   height: 2px;
-  background: var(--valkey-deep-blue);
+  background: var(--valkey-text-strong);
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-/* -------- Footer -------- */
+/* -------- Footer --------
+   The footer always renders on a dark surface (deep-blue or near-black)
+   with light text, so it doesn't need to swap palettes — but it does pick
+   up `--valkey-footer-bg` so the dark theme deepens it slightly. */
 .site-footer {
-  background: var(--valkey-deep-blue);
-  color: #b3c2cb;
+  background: var(--valkey-footer-bg);
+  color: var(--valkey-footer-text);
   padding: 4rem 1.5rem 0;
   margin-top: 4rem;
 }
@@ -725,13 +874,13 @@ starlight-menu-button + nav a[aria-current="page"],
     top: 100%;
     left: 0;
     right: 0;
-    background: #fff;
+    background: var(--valkey-bg);
     flex-direction: column;
     align-items: stretch;
     border-top: 1px solid var(--valkey-line);
     padding: 1rem 1.5rem;
     gap: 0.25rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
   }
   .site-header nav.mobile-open {
     display: flex;
@@ -752,7 +901,7 @@ starlight-menu-button + nav a[aria-current="page"],
 /* Homepage participant carousel — class hooks bind to public/assets/js/carousel.js. Do not rename. */
 
 .homepage-participants-section {
-  background: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
+  background: var(--valkey-section-participants-bg);
   padding: 80px 0;
 }
 
@@ -785,7 +934,7 @@ starlight-menu-button + nav a[aria-current="page"],
 }
 
 .homepage-participants-section .homepage-participants-error {
-  background: #fff;
+  background: var(--valkey-bg-elevated);
   border-radius: 20px;
   padding: 40px;
   text-align: center;
@@ -798,7 +947,7 @@ starlight-menu-button + nav a[aria-current="page"],
 }
 
 .homepage-participants-section .homepage-participants-carousel-container {
-  background: #fff;
+  background: var(--valkey-section-participants-card-bg);
   border-radius: 20px;
   position: relative;
   overflow: hidden;
@@ -886,12 +1035,12 @@ starlight-menu-button + nav a[aria-current="page"],
 }
 
 .homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering a {
-  color: #0053b8;
+  color: var(--valkey-link);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 .homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering a:hover {
-  color: #137cc1;
+  color: var(--valkey-link-hover);
   text-decoration: underline;
 }
 
@@ -1010,4 +1159,206 @@ starlight-menu-button + nav a[aria-current="page"],
     width: 10px;
     height: 10px;
   }
+}
+
+/* ==========================================================================
+   Theme toggle button (lives in SiteHeader on every page)
+   ========================================================================== */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--valkey-bg-soft);
+  color: var(--valkey-text);
+  border: 1px solid var(--valkey-line);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.theme-toggle:hover {
+  border-color: var(--valkey-blue-100);
+  color: var(--valkey-text-strong);
+}
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+/* Show the right icon for the active theme. Default = light → show moon
+   (i.e. "switch to dark"). When dark is active, show sun. */
+.theme-toggle .theme-icon-dark { display: none; }
+.theme-toggle .theme-icon-light { display: block; }
+:root[data-theme="dark"] .theme-toggle .theme-icon-light { display: none; }
+:root[data-theme="dark"] .theme-toggle .theme-icon-dark { display: block; }
+
+/* Logo: original is dark navy on white — for dark mode, invert it so the
+   wordmark stays legible. Logo SVG fill is #1a2026 (cls-1 paths). */
+:root[data-theme="dark"] .site-header .logo img {
+  filter: invert(1) hue-rotate(180deg) brightness(1.05);
+}
+
+/* ==========================================================================
+   Dark-theme overrides for component-scoped styles
+   --------------------------------------------------------------------------
+   These rules target classes declared in component <style> blocks (Astro's
+   data-astro-cid scoping doesn't matter here since we use the same class
+   names that Astro compiles into the scoped output). Dark-mode overrides
+   keep the brand intact while flipping surface, text, and shadow tokens.
+   ========================================================================== */
+
+/* HomeHero — already deep-purple in light mode; deepen further for dark. */
+:root[data-theme="dark"] .vk-hero {
+  background:
+    var(--valkey-section-hero-overlay),
+    url("/img/hero-bg.webp") right center / cover no-repeat,
+    var(--valkey-section-hero-bg) !important;
+}
+:root[data-theme="dark"] .vk-hero::after {
+  background: var(--valkey-section-hero-fade) !important;
+}
+
+/* HeroMetrics tile values — keep accent on hover (already on dark surface). */
+/* WhatsNew section already has dark gradient + frosted glass. Adapt the
+   inner release/blog cards which were white panels in light mode. */
+:root[data-theme="dark"] .vk-whats-new {
+  background-image: var(--valkey-section-whatsnew-bg) !important;
+}
+:root[data-theme="dark"] .vk-wn-release {
+  background: var(--valkey-bg-elevated) !important;
+  color: var(--valkey-text) !important;
+  box-shadow: var(--valkey-shadow-soft) !important;
+}
+:root[data-theme="dark"] .vk-wn-release-card :global(.release-section p),
+:root[data-theme="dark"] .vk-wn-release-card .release-section p {
+  color: var(--valkey-text);
+}
+:root[data-theme="dark"] .vk-wn-past-item details {
+  background: var(--valkey-bg-soft) !important;
+  border-color: var(--valkey-line) !important;
+}
+:root[data-theme="dark"] .vk-wn-past-item details[open] {
+  background: var(--valkey-bg-elevated) !important;
+}
+:root[data-theme="dark"] .vk-wn-past-item summary:hover {
+  background: rgba(109, 164, 232, 0.06) !important;
+}
+:root[data-theme="dark"] .past-v-toggle {
+  background: var(--valkey-bg-elevated) !important;
+  border-color: var(--valkey-line) !important;
+  color: var(--valkey-link) !important;
+}
+:root[data-theme="dark"] .past-v-body {
+  background: var(--valkey-bg-elevated) !important;
+}
+:root[data-theme="dark"] .vk-wn-blog {
+  background: var(--valkey-bg-elevated) !important;
+  color: var(--valkey-text) !important;
+  box-shadow: var(--valkey-shadow-soft) !important;
+}
+
+/* DocsCardsSection — purple band stays purple on dark, just deepens. */
+:root[data-theme="dark"] .vk-docs {
+  background: var(--valkey-section-docs-bg) !important;
+}
+:root[data-theme="dark"] .vk-docs-card {
+  background: var(--valkey-section-docs-card-bg) !important;
+}
+
+/* ParticipantsStrip carousel — surface needs to be a dark elevated panel
+   in dark mode so the white-bg pattern doesn't blow out. */
+:root[data-theme="dark"] .vk-pts-surface {
+  background: var(--valkey-section-participants-card-bg) !important;
+}
+:root[data-theme="dark"] .vk-pts .homepage-participants-carousel .homepage-participant-card {
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+}
+:root[data-theme="dark"] .vk-pts .homepage-participants-carousel .homepage-participant-card:hover {
+  background: var(--valkey-section-participants-card-hover) !important;
+}
+:root[data-theme="dark"] .vk-pts .vk-pts-img {
+  filter: grayscale(40%) brightness(1.5) contrast(0.9);
+  opacity: 0.9;
+}
+:root[data-theme="dark"] .vk-pts .homepage-participants-carousel .homepage-participant-card .vk-pts-name {
+  color: var(--valkey-text) !important;
+}
+:root[data-theme="dark"] .vk-pts .homepage-participants-carousel .homepage-participant-card .vk-pts-offering {
+  color: var(--valkey-text-light) !important;
+}
+:root[data-theme="dark"] .homepage-participants-section .homepage-participants-carousel-container {
+  background: var(--valkey-section-participants-card-bg) !important;
+}
+:root[data-theme="dark"] .homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-name {
+  color: var(--valkey-text);
+}
+
+/* Author bios + author pages */
+:root[data-theme="dark"] .author-bio__photo--empty {
+  background: var(--valkey-bg-soft);
+}
+
+/* Events page — table-style chrome was hardcoded to light hex values. */
+:root[data-theme="dark"] .calendar-nav .calendar-nav-title { color: var(--valkey-text); }
+:root[data-theme="dark"] .calendar-nav .calendar-nav-btn {
+  border-color: var(--valkey-line);
+  color: var(--valkey-text);
+  background: var(--valkey-bg);
+}
+:root[data-theme="dark"] .calendar-nav .calendar-nav-btn:hover:not(:disabled) {
+  background: var(--valkey-bg-soft);
+}
+:root[data-theme="dark"] .calendar-grid {
+  border-color: var(--valkey-line);
+}
+:root[data-theme="dark"] .calendar-header {
+  background-color: var(--valkey-bg-elevated);
+  color: var(--valkey-text);
+}
+:root[data-theme="dark"] .calendar-day {
+  border-color: var(--valkey-line-soft);
+}
+:root[data-theme="dark"] .calendar-day.empty { background-color: var(--valkey-bg-soft); }
+:root[data-theme="dark"] .calendar-day.has-event { background-color: rgba(109, 131, 255, 0.08); }
+:root[data-theme="dark"] .calendar-day .day-num { color: var(--valkey-text-light); }
+:root[data-theme="dark"] .events-list .event-card {
+  border-color: var(--valkey-line);
+  background: var(--valkey-bg-elevated);
+}
+:root[data-theme="dark"] .events-list .event-card h3 a { color: var(--valkey-text); }
+:root[data-theme="dark"] .events-list .event-card h3 a:hover { color: var(--valkey-link); }
+:root[data-theme="dark"] .events-list .event-card-date { color: var(--valkey-text-light); }
+:root[data-theme="dark"] .events-list .event-card-location a { color: var(--valkey-link); }
+
+/* Slack redirect page — its own minimal stylesheet, no dark mode. */
+
+/* Try-Valkey terminal area: background of #warningContainer button uses
+   var(--valkey-blue-300) which already works on both themes. */
+
+/* ==========================================================================
+   Dark-theme overrides for Starlight docs surfaces
+   --------------------------------------------------------------------------
+   Starlight ships its own dark theme via `--sl-color-*` tokens. We've
+   already set --sl-color-bg/text/etc above to reuse Valkey tokens. Add a
+   few targeted tweaks so the brand reads correctly. Inline code chips,
+   note callouts, and hover states inside dynamic Starlight content (which
+   we can't restyle component-by-component) all key off these tokens.
+   ========================================================================== */
+:root[data-theme="dark"] {
+  /* Make sure code blocks in markdown render with our dark code surface. */
+  --astro-code-color-text: var(--valkey-bg-code-text);
+  --astro-code-color-background: var(--valkey-bg-code);
+}
+
+/* Starlight callouts/asides on dark — Starlight uses its own `--sl-color-asides-*` */
+:root[data-theme="dark"] .sl-link-card {
+  background: var(--valkey-bg-soft);
+  border-color: var(--valkey-line);
+}
+:root[data-theme="dark"] .sl-link-card:hover {
+  background: var(--valkey-bg-elevated);
+  border-color: var(--valkey-link);
 }

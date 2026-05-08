@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
     color: inherit;
   }
   .featured h2 a:hover {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     text-decoration: none;
   }
   .featured-image {
@@ -190,7 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid var(--valkey-line);
     border-radius: 6px;
     font-size: 0.9rem;
-    background: #fff;
+    background: var(--valkey-bg-elevated);
+    color: var(--valkey-text);
   }
   .sr-only {
     position: absolute;
@@ -211,12 +212,12 @@ document.addEventListener('DOMContentLoaded', function() {
     border: 1px solid var(--valkey-line);
     border-radius: 10px;
     padding: 1.5rem;
-    background: #fff;
+    background: var(--valkey-bg-elevated);
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
   }
   .post-card:hover {
     border-color: var(--valkey-blue-100);
-    box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08);
+    box-shadow: var(--valkey-shadow-card);
   }
   .post-card h3 {
     margin: 0.5rem 0 0.5rem;
@@ -226,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
     color: var(--valkey-text);
   }
   .post-card h3 a:hover {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     text-decoration: none;
   }
   .meta {
@@ -241,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
     margin: 0;
   }
   .read-more {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     font-weight: 600;
   }
   /* Sidebar */
@@ -253,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
     font-family: var(--valkey-cond);
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     margin: 0 0 1rem;
     font-size: 1rem;
   }

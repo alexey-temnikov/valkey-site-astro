@@ -246,7 +246,7 @@ function getClientLink(c: Client): string | undefined {
     border: 1px solid var(--valkey-line);
   }
   .advanced-features-overview h2 {
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     font-family: var(--valkey-cond);
     letter-spacing: 0.02em;
     margin: 0 0 1rem;
@@ -261,14 +261,14 @@ function getClientLink(c: Client): string | undefined {
     font-size: 0.95rem;
   }
   .advanced-features-overview :global(a) {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
   }
   /* Language groups */
   .lang-group {
     margin-bottom: 3rem;
   }
   .lang-group h2 {
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     font-family: var(--valkey-cond);
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -285,12 +285,12 @@ function getClientLink(c: Client): string | undefined {
     border: 1px solid var(--valkey-line);
     border-radius: 10px;
     padding: 1.25rem 1.25rem 1rem;
-    background: #fff;
+    background: var(--valkey-bg-elevated);
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
   }
   .client-card:hover {
     border-color: var(--valkey-blue-100);
-    box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08);
+    box-shadow: var(--valkey-shadow-card);
   }
   .client-card.recommended {
     border-color: var(--valkey-blue-200);
@@ -309,11 +309,11 @@ function getClientLink(c: Client): string | undefined {
     color: var(--valkey-text);
   }
   .client-card h3 a {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
   }
   .tag {
     background: var(--valkey-blue-200);
-    color: #fff;
+    color: var(--valkey-on-accent);
     font-size: 0.7rem;
     padding: 0.15rem 0.5rem;
     border-radius: 999px;
@@ -413,7 +413,7 @@ function getClientLink(c: Client): string | undefined {
     border-top: 2px solid var(--valkey-line);
   }
   .feature-comparison h2 {
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     font-family: var(--valkey-cond);
     letter-spacing: 0.02em;
     margin: 0 0 1.5rem;
@@ -450,7 +450,7 @@ function getClientLink(c: Client): string | undefined {
   }
   .website-link {
     font-size: 0.75rem;
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     text-decoration: none;
     white-space: nowrap;
   }

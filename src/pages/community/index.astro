@@ -50,18 +50,18 @@ const sorted = entries
   .community-page { padding: 3rem 1.5rem 5rem; }
   .lead { color: var(--valkey-text-light); font-size: 1.05rem; margin: 0 0 0.5rem; }
   .community-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0 3rem; }
-  .community-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: #fff; }
+  .community-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: var(--valkey-bg-elevated); }
   .community-card-icon { width: 40px; height: 40px; margin-bottom: 0.75rem; }
-  .community-card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+  .community-card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; color: var(--valkey-text-strong); }
   .community-card p { color: var(--valkey-text-light); font-size: 0.9rem; line-height: 1.5; }
   .community-card-actions { margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  .btn { display: inline-block; background: var(--valkey-blue-300); color: #fff; padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; }
-  .section-heading { font-family: var(--valkey-cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--valkey-deep-blue); margin: 2.5rem 0 1.5rem; }
+  .btn { display: inline-block; background: var(--valkey-blue-300); color: var(--valkey-on-accent); padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; }
+  .section-heading { font-family: var(--valkey-cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--valkey-text-strong); margin: 2.5rem 0 1.5rem; }
   .post-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-  .post-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: #fff; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
-  .post-card:hover { border-color: var(--valkey-blue-100); box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08); }
+  .post-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: var(--valkey-bg-elevated); transition: box-shadow 0.15s ease, border-color 0.15s ease; }
+  .post-card:hover { border-color: var(--valkey-blue-100); box-shadow: var(--valkey-shadow-card); }
   .post-card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
   .post-card h3 a { color: var(--valkey-text); }
-  .post-card h3 a:hover { color: var(--valkey-blue-300); text-decoration: none; }
+  .post-card h3 a:hover { color: var(--valkey-link); text-decoration: none; }
   .excerpt { color: var(--valkey-text-light); font-size: 0.9rem; line-height: 1.5; margin: 0; }
 </style>

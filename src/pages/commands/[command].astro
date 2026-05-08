@@ -221,7 +221,7 @@ const grouped = groupedCommands();
   }
   .command-sidebar a[aria-current="page"] {
     background: var(--valkey-blue-300);
-    color: #fff;
+    color: var(--valkey-on-accent);
     font-weight: 600;
   }
 
@@ -253,7 +253,7 @@ const grouped = groupedCommands();
     margin-bottom: 1.5rem;
   }
   .breadcrumbs a {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
   }
   .breadcrumbs .sep {
     margin: 0 0.4rem;
@@ -263,7 +263,7 @@ const grouped = groupedCommands();
     font-family: var(--valkey-mono);
     font-size: clamp(1.75rem, 3.5vw, 2.5rem);
     margin: 0;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
   }
   .command-hero .summary {
     font-size: 1.1rem;
@@ -271,7 +271,8 @@ const grouped = groupedCommands();
     margin: 0.5rem 0 1.5rem;
   }
   .deprecated {
-    background: #fff3cd;
+    background: color-mix(in srgb, #fff3cd 70%, var(--valkey-bg-soft) 30%);
+    color: var(--valkey-text);
     border-left: 4px solid var(--valkey-purple-200);
     padding: 0.75rem 1rem;
     border-radius: 4px;
@@ -296,7 +297,7 @@ const grouped = groupedCommands();
   }
   .meta-grid code {
     font-family: var(--valkey-mono);
-    background: #fff;
+    background: var(--valkey-bg-elevated);
     padding: 0.1rem 0.4rem;
     border-radius: 4px;
     border: 1px solid var(--valkey-line);
@@ -308,12 +309,12 @@ const grouped = groupedCommands();
     font-family: var(--valkey-cond);
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     margin-top: 2rem;
   }
   .prose :global(pre) {
-    background: #1e1e2e;
-    color: #f5f5f5;
+    background: var(--valkey-bg-code);
+    color: var(--valkey-bg-code-text);
     padding: 1rem 1.25rem;
     border-radius: 8px;
     overflow-x: auto;
@@ -340,7 +341,7 @@ const grouped = groupedCommands();
     font-family: var(--valkey-cond);
     text-transform: uppercase;
     letter-spacing: 0.02em;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
   }
   .reply {
     margin: 1rem 0 2rem;
@@ -348,7 +349,7 @@ const grouped = groupedCommands();
   .reply h3 {
     font-family: var(--valkey-mono);
     font-size: 1rem;
-    color: var(--valkey-purple-200);
+    color: var(--valkey-purple-100);
     margin: 0 0 0.5rem;
     letter-spacing: 0.05em;
   }

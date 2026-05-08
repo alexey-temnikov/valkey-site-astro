@@ -79,13 +79,15 @@ const metricTiles = [
 </section>
 
 <style>
-  /* Hero: deep-purple background + image overlay. */
+  /* Hero: deep-purple background + image overlay. The colour stops use
+     theme variables (`--valkey-section-hero-*`) so the dark theme can swap
+     the deep purple for an even darker variant — see valkey-brand.css. */
   .vk-hero {
     position: relative;
     background:
-      linear-gradient(to bottom, rgba(48, 24, 110, 0.15), rgba(48, 24, 110, 0.75)),
+      var(--valkey-section-hero-overlay),
       url("/img/hero-bg.webp") right center / cover no-repeat,
-      #30186e;
+      var(--valkey-section-hero-bg);
     color: #fff;
     overflow: hidden;
     padding: 3rem 1.5rem 0;
@@ -95,7 +97,7 @@ const metricTiles = [
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(48, 24, 110, 0) 60%, rgba(48, 24, 110, 1) 100%);
+    background: var(--valkey-section-hero-fade);
     pointer-events: none;
     z-index: 0;
   }

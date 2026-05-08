@@ -106,9 +106,10 @@ function blurb(p: Participant): string {
 
 <style>
   /* Restore original brand gradient (sass/_valkey.scss used
-     `linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%)`).  */
+     `linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%)`). Theme-aware in
+     dark mode via `--valkey-section-participants-bg`. */
   .vk-pts {
-    background: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
+    background: var(--valkey-section-participants-bg);
     padding: 5rem 1.5rem 5.5rem;
     position: relative;
     isolation: isolate;
@@ -141,7 +142,7 @@ function blurb(p: Participant): string {
   }
 
   .vk-pts-surface {
-    background: #fff;
+    background: var(--valkey-section-participants-card-bg);
     border-radius: 20px;
     padding: 0.5rem;
     box-shadow: 0 30px 80px -40px rgba(48, 24, 110, 0.4);
@@ -167,7 +168,7 @@ function blurb(p: Participant): string {
       transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
   }
   .vk-pts .homepage-participants-carousel .homepage-participant-card:hover {
-    background: #f9f7fe;
+    background: var(--valkey-section-participants-card-hover);
     transform: translateY(-3px);
   }
   .vk-pts .vk-pts-img-wrap {
@@ -193,7 +194,7 @@ function blurb(p: Participant): string {
     font-weight: 700;
     letter-spacing: 0;
     text-transform: none;
-    color: var(--valkey-deep-blue, #003b5c);
+    color: var(--valkey-text-strong, #003b5c);
   }
   .vk-pts .homepage-participants-carousel .homepage-participant-card .vk-pts-offering {
     font-size: 0.82rem;

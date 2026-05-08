@@ -171,7 +171,7 @@ for (const handle of authors ?? []) {
     font-weight: 400;
     font-size: clamp(1.8rem, 3.2vw, 2.6rem);
     line-height: 1.05;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     letter-spacing: -0.01em;
     display: flex;
     align-items: center;
@@ -180,7 +180,7 @@ for (const handle of authors ?? []) {
 
   .author-bios__mark {
     display: inline-flex;
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     transform: translateY(1px) rotate(-12deg);
     transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1.1);
   }
@@ -194,8 +194,8 @@ for (const handle of authors ?? []) {
     margin-top: 1.25rem;
     background: linear-gradient(
       to right,
-      var(--valkey-deep-blue) 0,
-      var(--valkey-deep-blue) 4rem,
+      var(--valkey-text-strong) 0,
+      var(--valkey-text-strong) 4rem,
       transparent 4rem,
       transparent 100%
     );
@@ -287,7 +287,7 @@ for (const handle of authors ?? []) {
     font-family: var(--valkey-cond);
     font-size: 2.2rem;
     letter-spacing: 0.08em;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
     background: var(--valkey-pacific-sky);
     text-transform: uppercase;
   }
@@ -311,7 +311,7 @@ for (const handle of authors ?? []) {
     font-size: clamp(1.35rem, 2.3vw, 1.75rem);
     line-height: 1.15;
     letter-spacing: -0.005em;
-    color: var(--valkey-deep-blue);
+    color: var(--valkey-text-strong);
   }
   .author-bio__name a {
     color: inherit;
@@ -320,7 +320,7 @@ for (const handle of authors ?? []) {
     transition: border-color 0.25s ease, color 0.25s ease;
   }
   .author-bio__name a:hover {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     border-bottom-color: currentColor;
   }
 
@@ -347,13 +347,13 @@ for (const handle of authors ?? []) {
     font-size: 0.82rem;
   }
   .author-bio__handle a {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     text-decoration: none;
-    border-bottom: 1px dotted color-mix(in srgb, var(--valkey-blue-300) 40%, transparent);
+    border-bottom: 1px dotted color-mix(in srgb, var(--valkey-link) 40%, transparent);
     transition: color 0.25s ease, border-bottom-color 0.25s ease;
   }
   .author-bio__handle a:hover {
-    color: var(--valkey-purple-200);
+    color: var(--valkey-purple-100);
     border-bottom-color: currentColor;
   }
   .author-bio__at {
@@ -373,9 +373,9 @@ for (const handle of authors ?? []) {
     margin-bottom: 0;
   }
   .author-bio__text :global(a) {
-    color: var(--valkey-blue-300);
+    color: var(--valkey-link);
     text-decoration: none;
-    border-bottom: 1px solid color-mix(in srgb, var(--valkey-blue-300) 35%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--valkey-link) 35%, transparent);
     transition: border-bottom-color 0.25s ease;
   }
   .author-bio__text :global(a:hover) {

@@ -74,9 +74,10 @@ const docCards = [
 </section>
 
 <style>
-  /* Docs: periwinkle background, dark-purple cards. */
+  /* Docs: periwinkle background, dark-purple cards. The colors come from
+     theme variables so the dark theme can deepen them. */
   .vk-docs {
-    background: #6983ff;
+    background: var(--valkey-section-docs-bg, #6983ff);
     color: #fff;
     padding: 5.5rem 1.5rem 6rem;
     text-align: center;
@@ -111,7 +112,7 @@ const docCards = [
     text-align: left;
   }
   .vk-docs-card {
-    background: #2d2471;
+    background: var(--valkey-section-docs-card-bg, #2d2471);
     border-radius: 18px;
     overflow: hidden;
     position: relative;

@@ -158,9 +158,12 @@ const latestPosts = allPosts
 </section>
 
 <style>
-  /* What's new: purple gradient + frosted inner container. */
+  /* What's new: purple gradient + frosted inner container. The gradient
+     itself comes from `--valkey-section-whatsnew-bg` so the dark theme can
+     deepen it. The interior cards (release/blog) flip to dark surfaces in
+     dark mode — see valkey-brand.css. */
   .vk-whats-new {
-    background-image: linear-gradient(rgb(48, 23, 110), rgb(105, 131, 255));
+    background-image: var(--valkey-section-whatsnew-bg);
     padding: 5rem 1.5rem 5.5rem;
     color: #fff;
   }
@@ -197,11 +200,11 @@ const latestPosts = allPosts
 
   /* Release masthead */
   .vk-wn-release {
-    background: #fff;
+    background: var(--valkey-bg-elevated, #fff);
     border-radius: 14px;
     padding: 1.75rem;
     color: var(--valkey-text, #002a3a);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--valkey-shadow-soft, 0 10px 30px rgba(0, 0, 0, 0.08));
   }
   .vk-wn-release-meta {
     display: flex;
@@ -213,11 +216,11 @@ const latestPosts = allPosts
     font-family: var(--valkey-mono, "Fira Mono", monospace);
     margin-bottom: 0.25rem;
   }
-  .vk-wn-release-meta .meta-label { color: var(--valkey-blue-300, #0055a6); font-weight: 600; }
+  .vk-wn-release-meta .meta-label { color: var(--valkey-link, #0055a6); font-weight: 600; }
   .vk-wn-release-version {
     font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
     line-height: 0.9;
-    color: var(--valkey-deep-blue, #003b5c);
+    color: var(--valkey-text-strong, #003b5c);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
     margin: 0.25rem 0 1rem;
@@ -304,7 +307,7 @@ const latestPosts = allPosts
     transition: border-color 0.2s ease, background 0.2s ease;
   }
   .vk-wn-past-item details[open] {
-    background: #fff;
+    background: var(--valkey-bg-elevated, #fff);
     border-color: var(--valkey-blue-100, #337ec6);
   }
   .vk-wn-past-item summary {
@@ -317,7 +320,7 @@ const latestPosts = allPosts
     list-style: none;
   }
   .vk-wn-past-item summary::-webkit-details-marker { display: none; }
-  .vk-wn-past-item summary:hover { background: rgba(0, 85, 166, 0.04); }
+  .vk-wn-past-item summary:hover { background: color-mix(in srgb, var(--valkey-link, #0055a6) 6%, transparent); }
   .past-v-major {
     font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
     font-size: 1.8rem;
@@ -355,7 +358,7 @@ const latestPosts = allPosts
     font-family: var(--valkey-mono, "Fira Mono", monospace);
     font-size: 1.3rem;
     font-weight: 600;
-    color: var(--valkey-blue-300, #0055a6);
+    color: var(--valkey-link, #0055a6);
     width: 1.75rem;
     height: 1.75rem;
     display: inline-flex;
@@ -363,7 +366,7 @@ const latestPosts = allPosts
     justify-content: center;
     border-radius: 50%;
     border: 1px solid var(--valkey-line, #ccd3d6);
-    background: #fff;
+    background: var(--valkey-bg-elevated, #fff);
     transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
     line-height: 1;
   }
@@ -376,7 +379,7 @@ const latestPosts = allPosts
   .past-v-body {
     padding: 0 0.9rem 0.9rem;
     border-top: 1px solid var(--valkey-line, #ccd3d6);
-    background: #fff;
+    background: var(--valkey-bg-elevated, #fff);
   }
   .past-v-body :global(.release-section) { margin: 0.75rem 0 0; }
   .past-v-body :global(.release-section h4) {
@@ -479,9 +482,9 @@ const latestPosts = allPosts
   .vk-wn-perf-cta:hover svg { transform: translateX(3px); }
 
   .vk-wn-blog {
-    background: #fff;
+    background: var(--valkey-bg-elevated, #fff);
     color: var(--valkey-text, #002a3a);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--valkey-shadow-soft, 0 10px 30px rgba(0, 0, 0, 0.08));
   }
   .vk-wn-blog-head {
     display: flex;
@@ -497,13 +500,13 @@ const latestPosts = allPosts
     font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: 0;
-    color: var(--valkey-deep-blue, #003b5c);
+    color: var(--valkey-text-strong, #003b5c);
   }
   .vk-wn-blog-all {
     font-family: var(--valkey-sans, "Open Sans", sans-serif);
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--valkey-blue-300, #0055a6);
+    color: var(--valkey-link, #0055a6);
   }
   .vk-wn-blog-all:hover { text-decoration: none; color: var(--valkey-purple-200, #692a84); }
   .vk-wn-blog-list { list-style: none; margin: 0; padding: 0; }
@@ -532,7 +535,7 @@ const latestPosts = allPosts
     font-size: 0.98rem;
     line-height: 1.35;
     font-weight: 600;
-    color: var(--valkey-deep-blue, #003b5c);
+    color: var(--valkey-text-strong, #003b5c);
     transition: color 0.15s ease;
   }
   .vk-wn-blog-item p {

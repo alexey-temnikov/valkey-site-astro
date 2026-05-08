@@ -98,10 +98,12 @@
 
 <style is:global>
   /* ====================================================================
-     Footer — ported from valkey-io.github.io/sass/_valkey.scss:391-478
+     Footer — ported from valkey-io.github.io/sass/_valkey.scss:391-478.
+     Footer surface always renders dark so it just deepens slightly when
+     the rest of the page goes dark. `--valkey-footer-bg` is the variable.
      ==================================================================== */
   .footer {
-    background-color: #1a2026;
+    background-color: var(--valkey-footer-bg, #1a2026);
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
     font-size: 14px;
     color: #fff;
