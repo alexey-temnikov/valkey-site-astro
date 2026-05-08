@@ -96,6 +96,18 @@ jobs:
           ref: unstable
         continue-on-error: true
 
+      - name: Checkout valkey-io.github.io (sibling — provides the prebuilt GLIDE bundle)
+        # The `public/glide` symlink resolves to `../../valkey-io.github.io/static/glide`,
+        # which is the prebuilt Starlight bundle for Valkey GLIDE docs. Checking the
+        # repo out next to ours makes the symlink resolve at build time so /glide/* is
+        # served from the real bundle instead of the placeholder.
+        uses: actions/checkout@v4
+        with:
+          repository: valkey-io/valkey-io.github.io
+          path: valkey-io.github.io
+          ref: main
+        continue-on-error: true
+
       - name: Detach broken glide symlink (CI has no sibling glide bundle)
         # If the `public/glide` symlink target is missing (sibling
         # valkey-io.github.io checkout is not present), remove the symlink
