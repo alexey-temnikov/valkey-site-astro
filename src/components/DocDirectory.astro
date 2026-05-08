@@ -1,0 +1,251 @@
+---
+/**
+ * DocDirectory — the editorial "directory" replacement for the four
+ * homepage doc cards (Install / Usage / API / Clients).
+ *
+ * Treatment:
+ *   - Sector ID (01 / 02 / 03 / 04) in pacific-sky mono
+ *   - Condensed-caps title
+ *   - A single hairline at the top of each tile; a thick pacific-sky bar
+ *     slides in under the title on hover
+ *   - Arrow glyph that translates right on hover
+ *   - Bulleted client-features render as a monospace inline list
+ */
+
+export interface DocItem {
+  title: string;
+  kicker: string;
+  description: string;
+  href: string;
+  features?: string[];
+  /** e.g. "Core" / "Reference" / "SDK" — monospace chip top-right */
+  chip?: string;
+}
+
+export interface Props {
+  items: DocItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ol class="vk-directory" role="list">
+  {items.map((item, i) => (
+    <li class="vk-dir-item" style={`--i:${i}`}>
+      <a href={item.href} class="vk-dir-link">
+        <div class="vk-dir-head">
+          <span class="vk-dir-id">§ {String(i + 1).padStart(2, "0")}</span>
+          {item.chip && <span class="vk-dir-chip">{item.chip}</span>}
+        </div>
+        <h3 class="vk-dir-title">
+          <span class="vk-dir-title-inner">{item.title}</span>
+        </h3>
+        <p class="vk-dir-kicker">{item.kicker}</p>
+        <p class="vk-dir-desc">{item.description}</p>
+        {item.features && (
+          <ul class="vk-dir-features" aria-label="Included languages">
+            {item.features.map((f) => <li>{f}</li>)}
+          </ul>
+        )}
+        <span class="vk-dir-cta" aria-hidden="true">
+          <span class="vk-dir-cta-label">Open</span>
+          <svg width="20" height="10" viewBox="0 0 20 10" aria-hidden="true">
+            <path d="M0 5 H18 M13 0 L18 5 L13 10" stroke="currentColor" stroke-width="1.25"
+                  fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+      </a>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .vk-directory {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+    border-bottom: 1px solid var(--valkey-line, #ccd3d6);
+  }
+  .vk-dir-item {
+    position: relative;
+    margin: 0;
+  }
+  .vk-dir-item + .vk-dir-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--valkey-line, #ccd3d6);
+  }
+
+  .vk-dir-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.75rem 1.75rem 1.5rem;
+    color: var(--valkey-text, #002a3a);
+    text-decoration: none;
+    height: 100%;
+    position: relative;
+    isolation: isolate;
+    transition: background 0.2s ease;
+  }
+  .vk-dir-link::before {
+    /* pacific-sky under-bar that slides in on hover */
+    content: "";
+    position: absolute;
+    left: 1.75rem;
+    right: 1.75rem;
+    bottom: 1.5rem;
+    height: 4px;
+    background: var(--valkey-pacific-sky, #b9d9eb);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.3, 1);
+    z-index: -1;
+  }
+  .vk-dir-link:hover {
+    background: var(--valkey-bg-soft, #f5f7f7);
+    text-decoration: none;
+  }
+  .vk-dir-link:hover::before,
+  .vk-dir-link:focus-visible::before {
+    transform: scaleX(1);
+  }
+
+  .vk-dir-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .vk-dir-id {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--valkey-blue-200, #005eb8);
+    text-transform: uppercase;
+  }
+  .vk-dir-chip {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    border-radius: 3px;
+    color: var(--valkey-text-light, #647782);
+    text-transform: uppercase;
+  }
+
+  .vk-dir-title {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: clamp(1.6rem, 2.3vw, 2rem);
+    color: var(--valkey-deep-blue, #003b5c);
+    margin: 0.4rem 0 0;
+    line-height: 1.02;
+  }
+  .vk-dir-kicker {
+    font-family: var(--valkey-serif, "Noto Serif", Georgia, serif);
+    font-style: italic;
+    color: var(--valkey-text-light, #647782);
+    font-size: 0.92rem;
+    margin: 0.1rem 0 0;
+    line-height: 1.4;
+  }
+
+  .vk-dir-desc {
+    color: var(--valkey-text, #002a3a);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin: 0.6rem 0 0;
+    flex: 1;
+  }
+
+  .vk-dir-features {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.55rem;
+  }
+  .vk-dir-features li {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.75rem;
+    padding: 0.18rem 0.5rem;
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    border-radius: 3px;
+    color: var(--valkey-text-light, #647782);
+    background: #fff;
+  }
+
+  .vk-dir-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.88rem;
+    color: var(--valkey-blue-300, #0055a6);
+  }
+  .vk-dir-cta svg {
+    transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .vk-dir-link:hover .vk-dir-cta svg,
+  .vk-dir-link:focus-visible .vk-dir-cta svg {
+    transform: translateX(4px);
+  }
+
+  @media (max-width: 1000px) {
+    .vk-directory { grid-template-columns: repeat(2, 1fr); }
+    .vk-dir-item + .vk-dir-item::before { display: none; }
+    .vk-dir-item:nth-child(odd)::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--valkey-line, #ccd3d6);
+    }
+    .vk-dir-item:nth-child(-n+2)::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      background: var(--valkey-line, #ccd3d6);
+    }
+  }
+  @media (max-width: 640px) {
+    .vk-directory { grid-template-columns: 1fr; }
+    .vk-dir-item:nth-child(odd)::after { display: none; }
+    .vk-dir-item:nth-child(-n+2)::before { display: none; }
+    .vk-dir-item + .vk-dir-item {
+      border-top: 1px solid var(--valkey-line, #ccd3d6);
+    }
+    .vk-dir-link { padding: 1.5rem 1.5rem 1.25rem; }
+    .vk-dir-link::before { left: 1.5rem; right: 1.5rem; bottom: 1.25rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vk-dir-link::before,
+    .vk-dir-link,
+    .vk-dir-cta svg {
+      transition: none;
+    }
+  }
+</style>

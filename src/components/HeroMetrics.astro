@@ -1,0 +1,209 @@
+---
+/**
+ * HeroMetrics — the "instrument panel" under the hero headline.
+ *
+ * Four numerical tiles, each with:
+ *   - a tiny monospace label
+ *   - a large tabular-numeral value
+ *   - an optional inline SVG sparkline
+ *   - a bottom caption
+ *
+ * Values are passed in as props so the page can source them from its real
+ * content inventory (getCollection counts, participants length, etc.) —
+ * nothing is hard-coded here.
+ */
+export interface Tile {
+  label: string;
+  value: string;
+  caption: string;
+  /** A small set of numbers to render as a sparkline — omit to show nothing. */
+  spark?: number[];
+  /** Optional href that wraps the whole tile. */
+  href?: string;
+  /** Optional small unit shown right after the value, e.g. "ops/sec". */
+  unit?: string;
+}
+
+export interface Props {
+  tiles: Tile[];
+}
+
+const { tiles } = Astro.props;
+
+/**
+ * Build an SVG polyline path from a series of positive numbers.
+ * Normalises into the 0..1 range then scales to the given width/height.
+ */
+function sparkPath(values: number[], w = 96, h = 22): string {
+  if (!values.length) return "";
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const stepX = w / (values.length - 1 || 1);
+  return values
+    .map((v, i) => {
+      const x = i * stepX;
+      const y = h - ((v - min) / span) * h;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+---
+
+<dl class="vk-metrics">
+  {tiles.map((t, i) => {
+    const spark = t.spark && t.spark.length >= 2 ? sparkPath(t.spark) : "";
+    const fillSpark = spark ? `${spark} L96,22 L0,22 Z` : "";
+    const inner = (
+      <>
+        <dt class="label">
+          <span class="idx">{String(i + 1).padStart(2, "0")}</span>
+          <span>{t.label}</span>
+        </dt>
+        <dd class="value-row">
+          <span class="value">{t.value}</span>
+          {t.unit && <span class="unit">{t.unit}</span>}
+          {spark && (
+            <svg class="spark" viewBox="0 0 96 22" width="96" height="22" aria-hidden="true">
+              <path d={fillSpark} class="spark-fill" />
+              <path d={spark} class="spark-line" />
+            </svg>
+          )}
+        </dd>
+        <dd class="caption">{t.caption}</dd>
+      </>
+    );
+    return (
+      <div class="tile" style={`--i:${i}`}>
+        {t.href ? (
+          <a href={t.href} class="tile-link">{inner}</a>
+        ) : (
+          inner
+        )}
+      </div>
+    );
+  })}
+</dl>
+
+<style>
+  .vk-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .tile {
+    padding: 1.1rem 1.25rem 1.25rem;
+    position: relative;
+    color: #fff;
+  }
+  .tile + .tile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12%;
+    bottom: 12%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.14);
+  }
+  .tile-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .tile-link:hover {
+    text-decoration: none;
+  }
+  .tile:hover .value,
+  .tile:focus-within .value {
+    color: var(--valkey-pacific-sky, #b9d9eb);
+  }
+  .tile-link:hover .spark-line {
+    stroke: var(--valkey-pacific-sky, #b9d9eb);
+  }
+
+  .label {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.62);
+    margin: 0 0 0.5rem;
+  }
+  .label .idx {
+    color: var(--valkey-pacific-sky, #b9d9eb);
+  }
+
+  .value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    margin: 0;
+  }
+  .value {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+    line-height: 1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
+  }
+  .unit {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .spark {
+    margin-left: auto;
+    overflow: visible;
+  }
+  .spark-line {
+    fill: none;
+    stroke: var(--valkey-pacific-sky, #b9d9eb);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.2s ease;
+  }
+  .spark-fill {
+    fill: var(--valkey-pacific-sky, #b9d9eb);
+    opacity: 0.12;
+  }
+  .caption {
+    margin: 0.4rem 0 0;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 920px) {
+    .vk-metrics { grid-template-columns: repeat(2, 1fr); }
+    .tile + .tile::before { display: none; }
+    .tile:nth-child(1), .tile:nth-child(2) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .tile:nth-child(odd)::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 12%;
+      bottom: 12%;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.14);
+    }
+  }
+  @media (max-width: 520px) {
+    .vk-metrics { grid-template-columns: 1fr; }
+    .tile:nth-child(odd)::after { display: none; }
+    .tile + .tile { border-top: 1px solid rgba(255, 255, 255, 0.12); }
+  }
+</style>

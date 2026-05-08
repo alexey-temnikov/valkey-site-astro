@@ -1,0 +1,304 @@
+---
+/**
+ * ParticipantsStrip — the editorial, pacific-sky-tinted replacement
+ * for the default purple-gradient participants carousel.
+ *
+ * Structure + class hooks match the original (carousel.js binds to
+ * #homepageParticipantsCarousel and .homepage-participant-card), so
+ * the ported carousel behaviour keeps working. The visual treatment
+ * is overridden via the more-specific `.vk-consortium` ancestor.
+ *
+ * Visual idioms:
+ *   - CONSORTIUM eyebrow + "17 ORGANIZATIONS" counter
+ *   - Logos sit on a monochrome (grayscale) filter by default, in colour
+ *     on hover — classic editorial trick for partner/sponsor rows
+ *   - Each card has a tabular index, hover lifts + reveals the offering
+ *   - Hairline grid between cards for a contact-sheet feel
+ */
+import { marked } from "marked";
+
+interface Participant {
+  name: string;
+  image?: { path: string; alt?: string };
+  offering?: string;
+  company?: string;
+  link?: string;
+}
+
+export interface Props {
+  participants: Participant[];
+  title?: string;
+  lead?: string;
+}
+
+const { participants, title = "Consortium", lead } = Astro.props;
+const totalSlides = Math.ceil(participants.length / 3);
+
+function blurb(p: Participant): string {
+  const src = p.offering ?? p.company ?? "";
+  return marked.parse(src, { async: false }) as string;
+}
+---
+
+<section class="vk-consortium homepage-participants-section">
+  <div class="vk-consortium-frame">
+    <header class="vk-consortium-head">
+      <div class="vk-consortium-meta">
+        <span class="eyebrow">
+          <span class="bullet" aria-hidden="true">◆</span>
+          <span>{title}</span>
+        </span>
+        <span class="count" aria-label={`${participants.length} organizations`}>
+          {String(participants.length).padStart(2, "0")} ORGANIZATIONS
+        </span>
+      </div>
+      <h2 class="vk-consortium-title">
+        An <em>open</em> database, kept open<br />
+        by an <span class="underline-acc">active</span> consortium.
+      </h2>
+      {lead && <p class="vk-consortium-lead">{lead}</p>}
+    </header>
+
+    <div class="vk-consortium-surface">
+      <div
+        class="homepage-participants-carousel-container vk-consortium-container"
+      >
+        <div class="homepage-participants-carousel" id="homepageParticipantsCarousel">
+          <div class="homepage-participants-track" id="homepageParticipantsTrack">
+            {participants.map((p, i) => (
+              <div
+                class="homepage-participant-card vk-consortium-card"
+                onclick={p.link ? `window.open('${p.link}', '_blank')` : undefined}
+                role="button"
+                tabindex="0"
+                aria-label={`Visit ${p.name} website`}
+              >
+                <span class="vk-consortium-idx" aria-hidden="true">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div class="homepage-participant-image-container vk-consortium-img-wrap">
+                  {p.image && p.image.path ? (
+                    <img
+                      src={p.image.path}
+                      alt={p.image.alt || `${p.name} logo`}
+                      class="homepage-participant-image vk-consortium-img"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="homepage-participant-image-placeholder">
+                      {p.name.slice(0, 2)}
+                    </div>
+                  )}
+                </div>
+                <h3 class="homepage-participant-name vk-consortium-name">{p.name}</h3>
+                <div
+                  class="homepage-participant-offering vk-consortium-offering"
+                  set:html={blurb(p)}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="homepage-participants-navigation vk-consortium-nav"
+        aria-label="Participant carousel navigation"
+      >
+        <div class="homepage-participants-dots" id="homepageParticipantsDots">
+          {totalSlides > 1 &&
+            Array.from({ length: totalSlides }).map((_, i) => (
+              <button
+                class="homepage-participant-dot"
+                data-slide={i}
+                aria-label={`Go to slide ${i + 1}`}
+                aria-current="false"
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .vk-consortium {
+    /* Override the default bright-purple carousel treatment */
+    background: linear-gradient(
+      180deg,
+      #eaf3fb 0%,
+      #dcecf6 100%
+    );
+    position: relative;
+    padding: 5rem 1.5rem 5.5rem;
+    isolation: isolate;
+  }
+  .vk-consortium::before {
+    /* subtle dot-grid background */
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      rgba(0, 59, 92, 0.08) 1px,
+      transparent 1.5px
+    );
+    background-size: 20px 20px;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .vk-consortium-frame {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .vk-consortium-meta {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 59, 92, 0.18);
+    margin-bottom: 1.5rem;
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--valkey-deep-blue, #003b5c);
+  }
+  .vk-consortium-meta .eyebrow {
+    display: inline-flex;
+    gap: 0.55rem;
+    align-items: center;
+  }
+  .vk-consortium-meta .bullet {
+    color: var(--valkey-purple-200, #692a84);
+  }
+  .vk-consortium-meta .count {
+    margin-left: auto;
+    color: var(--valkey-blue-300, #0055a6);
+    font-weight: 600;
+  }
+
+  .vk-consortium-title {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--valkey-deep-blue, #003b5c);
+    font-size: clamp(2rem, 4.2vw, 3.5rem);
+    line-height: 1.02;
+    margin: 0;
+    max-width: 30ch;
+  }
+  .vk-consortium-title em {
+    font-family: var(--valkey-serif, "Noto Serif", Georgia, serif);
+    font-style: italic;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--valkey-purple-200, #692a84);
+  }
+  .vk-consortium-title .underline-acc {
+    background-image: linear-gradient(180deg, transparent 78%, var(--valkey-pacific-sky, #b9d9eb) 78%);
+  }
+
+  .vk-consortium-lead {
+    max-width: 60ch;
+    margin: 1.1rem 0 0;
+    color: var(--valkey-text, #002a3a);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .vk-consortium-surface {
+    margin-top: 2.75rem;
+    background: #fff;
+    border: 1px solid rgba(0, 59, 92, 0.15);
+    border-radius: 6px;
+    padding: 0.5rem;
+    box-shadow: 0 30px 80px -40px rgba(0, 59, 92, 0.35);
+  }
+  .vk-consortium-container {
+    border-radius: 4px !important;
+    overflow: hidden;
+  }
+
+  /* Override the SCSS participant card treatment — keep layout behaviour (33% flex)
+     but drop the big padding, put a hairline between cards, and desaturate logos. */
+  .vk-consortium .homepage-participants-carousel .homepage-participant-card {
+    padding: 2rem 1.75rem !important;
+    position: relative;
+    border-right: 1px solid rgba(0, 59, 92, 0.08);
+    transition:
+      background 0.25s ease,
+      transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  .vk-consortium .homepage-participants-carousel .homepage-participant-card:hover {
+    background: var(--valkey-bg-soft, #f5f7f7);
+    transform: translateY(-3px);
+  }
+  .vk-consortium-idx {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    color: var(--valkey-text-light, #647782);
+  }
+  .vk-consortium-img-wrap {
+    margin-bottom: 1.25rem !important;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .vk-consortium-img {
+    filter: grayscale(100%) contrast(0.9);
+    opacity: 0.72;
+    transition: filter 0.25s ease, opacity 0.25s ease;
+    max-height: 44px !important;
+  }
+  .vk-consortium .homepage-participant-card:hover .vk-consortium-img {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+  .vk-consortium-name {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    font-size: 1.15rem !important;
+    color: var(--valkey-deep-blue, #003b5c) !important;
+  }
+  .vk-consortium-offering {
+    font-size: 0.82rem !important;
+    color: var(--valkey-text-light, #647782) !important;
+  }
+
+  /* Nav dots — tone down + align with brand */
+  .vk-consortium-nav {
+    margin-top: 1.25rem !important;
+  }
+  .vk-consortium .homepage-participants-dots .homepage-participant-dot {
+    background: rgba(0, 59, 92, 0.3) !important;
+    width: 8px !important;
+    height: 8px !important;
+  }
+  .vk-consortium .homepage-participants-dots .homepage-participant-dot[aria-current="true"],
+  .vk-consortium .homepage-participants-dots .homepage-participant-dot.active {
+    background: var(--valkey-blue-300, #0055a6) !important;
+  }
+
+  @media (max-width: 768px) {
+    .vk-consortium { padding: 3.5rem 1.25rem 4rem; }
+    .vk-consortium-meta { flex-direction: column; align-items: flex-start; gap: 0.35rem; }
+    .vk-consortium-meta .count { margin-left: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vk-consortium .homepage-participants-carousel .homepage-participant-card,
+    .vk-consortium-img {
+      transition: none;
+    }
+  }
+</style>
