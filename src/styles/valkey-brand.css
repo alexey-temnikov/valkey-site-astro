@@ -260,10 +260,10 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav {
   display: flex;
   align-items: center;
-  /* Fluid gap: 1rem at 860px → 1.5rem at 1200px+.
-     Slope (px/px): (24-16)/(1200-860) = 0.02353 → 2.353vw.
-     Intercept (px): 24 - 0.02353 * 1200 = -4.24 → -0.265rem. */
-  gap: clamp(1rem, calc(-0.265rem + 2.353vw), 1.5rem);
+  /* Fluid gap: 0.85rem at 1025px → 1.5rem at 1200px+.
+     Slope (px/px): (24-13.6)/(1200-1025) = 0.0594 → 5.943vw.
+     Intercept (px): 24 - 0.0594 * 1200 = -47.31 → -2.957rem. */
+  gap: clamp(0.85rem, calc(-2.957rem + 5.943vw), 1.5rem);
   flex-wrap: nowrap;
   min-width: 0;
 }
@@ -271,14 +271,12 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav .has-submenu > a {
   color: var(--valkey-blue-300);
   font-weight: 600;
-  /* Fluid font: 0.78rem at 860px viewport → 0.95rem at ≥1280px.
-     Slope: (0.95 - 0.78) / (1280 - 860) = 0.000405 rem/px = 0.0405rem/100px = 0.405vw / 10.
-     => 0.0405vw + intercept. At 860px: 0.78 = 0.0405 * 8.6 + b → b = 0.78 - 0.3483 = 0.4317rem.
-     The clamp caps at 0.95rem above 1280px, so wider screens keep the original size. */
-  /* Fluid font: 0.85rem at 860px → 1rem at 1200px+.
-     Slope (px/px): (16 - 13.6) / (1200 - 860) = 0.00706 → 0.706vw.
-     Intercept (px): 16 - 0.00706 * 1200 = 7.529 → 0.4706rem. */
-  font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 1rem);
+  /* Fluid font in the desktop range only (1025-1200px+). Below 1025px the
+     hamburger media query takes over.
+     Anchors: 0.82rem (~13.1px) at 1025px → 1rem (16px) at 1200px+.
+     Slope (px/px): (16 - 13.1) / (1200 - 1025) = 0.01657 → 1.657vw.
+     Intercept (px): 16 - 0.01657 * 1200 = -3.886 → -0.243rem. */
+  font-size: clamp(0.82rem, calc(-0.243rem + 1.657vw), 1rem);
   padding: 0.5rem 0;
   display: inline-flex;
   align-items: center;
