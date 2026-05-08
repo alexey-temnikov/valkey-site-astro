@@ -14,8 +14,8 @@ const authors = (await getCollection("authors")).sort((a, b) =>
   description="Valkey blog authors and contributors."
 >
   <section class="authors-index width-limiter">
-    <h1>Authors</h1>
-    <p class="lead">Contributors who have written for the Valkey blog or serve on the Technical Steering Committee.</p>
+    <h1 class="page-h1">Authors</h1>
+    <p class="page-lead">Contributors who have written for the Valkey blog or serve on the Technical Steering Committee.</p>
 
     <ul class="authors-list">
       {authors.map((author) => {
@@ -38,16 +38,6 @@ const authors = (await getCollection("authors")).sort((a, b) =>
   .authors-index {
     padding: 3rem 1.5rem 5rem;
     max-width: 900px;
-  }
-  .authors-index h1 {
-    font-family: var(--valkey-cond);
-    font-size: clamp(2.25rem, 4vw, 3.5rem);
-    margin: 0 0 0.5rem;
-  }
-  .lead {
-    color: var(--valkey-text-light);
-    max-width: 52rem;
-    margin: 0 0 2rem;
   }
   .authors-list {
     list-style: none;

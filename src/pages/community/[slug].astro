@@ -1,5 +1,6 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { communityCards } from "../../data/community";
 
 export async function getStaticPaths() {
   const pages = import.meta.glob("/src/content/community/*.md", { eager: true });
@@ -12,15 +13,6 @@ export async function getStaticPaths() {
 }
 
 const { frontmatter, Content } = Astro.props;
-
-const communityCards = [
-  { icon: "icon-question.svg", title: "Ask Questions", description: "If you have any inquiries about Valkey, feel free to join the conversation on our GitHub discussions or chat with us on Slack.", links: [{ url: "https://github.com/orgs/valkey-io/discussions", text: "GitHub Repository" }, { url: "https://valkey.io/slack", text: "Slack" }] },
-  { icon: "icon-bug.svg", title: "Report Bugs", description: "If you encounter any issues while using Valkey, please help us improve the project by filing a bug report at our GitHub repository.", links: [{ url: "https://github.com/valkey-io/valkey/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=%5BBUG%5D", text: "GitHub Repository" }] },
-  { icon: "icon-users.svg", title: "Connect on Social Media", description: "Stay updated and connect with us on our social media platforms.", links: [{ url: "https://www.linkedin.com/company/valkey/", text: "LinkedIn" }, { url: "https://bsky.app/profile/valkeyio.bsky.social/", text: "Bluesky" }, { url: "https://twitter.com/valkey_io", text: "Twitter" }] },
-  { icon: "icon-bulb.svg", title: "Suggest Features", description: "We value your ideas! If you have a suggestion for a new feature, please submit a feature request on our GitHub.", links: [{ url: "https://github.com/valkey-io/valkey/issues/new?assignees=&labels=&projects=&template=feature_request.md&title=%5BNEW%5D", text: "GitHub" }] },
-  { icon: "icon-sheild.svg", title: "Security Concerns", description: "For any potential security issues, please refer to our Security Policy.", links: [{ url: "https://github.com/valkey-io/valkey/blob/unstable/SECURITY.md", text: "Learn more" }] },
-  { icon: "icon-book.svg", title: "Community Conduct", description: "If you experience any issues with community members behavior, kindly check our Code of Conduct for guidance.", links: [{ url: "/code_of_conduct", text: "Learn more" }] },
-];
 
 // Merge page-specific cards with global cards
 const pageCards = frontmatter.cards ?? [];
@@ -63,12 +55,7 @@ const allCards = [...pageCards, ...communityCards];
 
 <style>
   .community-page { max-width: 900px; padding: 2rem 1.5rem 5rem; }
-  .breadcrumbs { font-size: 0.85rem; color: var(--valkey-text-light); margin-bottom: 1.5rem; }
-  .breadcrumbs a { color: var(--valkey-blue-300); }
-  .breadcrumbs .sep { margin: 0 0.4rem; color: var(--valkey-line); }
-  .prose { line-height: 1.7; font-size: 1.02rem; }
   .prose :global(h1) { font-family: var(--valkey-cond); font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; margin: 0.5rem 0 1rem; }
-  .prose :global(h2) { font-family: var(--valkey-cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--valkey-deep-blue); margin-top: 2rem; font-size: 1.5rem; }
   .community-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
   .community-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: #fff; }
   .community-card-icon { width: 40px; height: 40px; margin-bottom: 0.75rem; }
@@ -76,6 +63,4 @@ const allCards = [...pageCards, ...communityCards];
   .community-card p { color: var(--valkey-text-light); font-size: 0.9rem; line-height: 1.5; }
   .community-card-actions { margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
   .btn { display: inline-block; background: var(--valkey-blue-300); color: #fff; padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-decoration: none; }
-  .post-footer { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--valkey-line); }
-  .back { color: var(--valkey-blue-300); font-weight: 600; }
 </style>

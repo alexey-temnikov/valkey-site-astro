@@ -16,17 +16,26 @@ import { formatDate, majorVersion } from "../lib/releases";
 export interface Props {
   release: Release;
   /**
-   * If "major", render `<h3>Version {N}.x.x</h3>` (download/index usage).
+   * If "major", render a `Version {N}.x.x` header (level set by `headingLevel`).
    * If "none", render no version header (per-release page already has an H1).
    */
   heading?: "major" | "none";
+  /**
+   * Tag used for the version header when `heading === "major"`.
+   * Defaults to `"h3"` (matches the Download page's section nesting).
+   * The homepage "past releases" nest inside an outer H3, so the consumer
+   * passes `"h4"` there — mirrors Zola's `<h4>Version …</h4>` wrapper around
+   * the `includes/release.html` include in `templates/index.html`.
+   */
+  headingLevel?: "h3" | "h4";
 }
 
-const { release, heading = "major" } = Astro.props;
+const { release, heading = "major", headingLevel = "h3" } = Astro.props;
+const VersionHeading = headingLevel;
 ---
 
 <div class="release-section">
-  {heading === "major" && <h3>Version {majorVersion(release)}.x.x</h3>}
+  {heading === "major" && <VersionHeading>Version {majorVersion(release)}.x.x</VersionHeading>}
 
   <p>
     <strong>Release Date:</strong> {formatDate(release.date)}<br />
@@ -88,6 +97,14 @@ const { release, heading = "major" } = Astro.props;
   }
   .release-section h3 {
     margin-top: 2rem;
+  }
+  .release-section > h4 {
+    /* Used by the homepage "past releases" block: mirrors
+       `<h4>Version …</h4>` in Zola's templates/index.html. */
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-top: 2rem;
+    color: var(--valkey-deep-blue);
   }
   .release-section h4 {
     margin-top: 1.5rem;

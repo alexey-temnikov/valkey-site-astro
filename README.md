@@ -29,7 +29,7 @@ Verified against `https://valkey.io/` via chrome-devtools:
 | Hero H1s | "FAST. RELIABLE." / "OPEN SOURCE, FOREVER." | ✓ same |
 | Hero subtitle + CTA | ✓ | ✓ same |
 | Doc cards (4) | Install / Usage / API / Clients | ✓ same |
-| Participants section | 17 logos | ✓ 17 logos |
+| Participants section | 17 logos, auto-scrolling carousel (3/2/1 per slide, dots, hover-pause) | ✓ 17 logos, 1:1 carousel port of `participant-carousel.html` + `carousel.js` |
 | Newsletter form | LF HubSpot | ✓ LF HubSpot |
 | Announcement banner | Valkey 9.0 | ✓ + 24h localStorage dismiss |
 | Top nav | Download / Docs / Blog / Community / Participants / Try Valkey / GitHub | ✓ same |

@@ -56,8 +56,8 @@ const allCommandsSorted = Object.values(byGroup)
   description="Full reference for every Valkey command, including first-party modules."
 >
   <section class="commands-index width-limiter" id="top">
-    <h1>Valkey Commands</h1>
-    <p class="lead">
+    <h1 class="page-h1">Valkey Commands</h1>
+    <p class="page-lead">
       Complete reference for all <strong>{totalCommands}</strong> Valkey commands,
       grouped by data type. Includes first-party modules (Bloom filter, JSON,
       Search).
@@ -159,18 +159,6 @@ const allCommandsSorted = Object.values(byGroup)
 <style>
   .commands-index {
     padding: 3rem 1.5rem 5rem;
-  }
-  .commands-index h1 {
-    font-family: var(--valkey-cond);
-    letter-spacing: 0.02em;
-    font-size: clamp(2.25rem, 4vw, 3.5rem);
-    margin-bottom: 0.5rem;
-  }
-  .lead {
-    color: var(--valkey-text-light);
-    font-size: 1.05rem;
-    max-width: 50rem;
-    margin: 0 0 2rem;
   }
   .search-container {
     margin-bottom: 1.5rem;

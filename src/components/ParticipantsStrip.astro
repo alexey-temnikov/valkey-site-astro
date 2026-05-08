@@ -146,15 +146,20 @@ function blurb(p: Participant): string {
     padding: 0.5rem;
     box-shadow: 0 30px 80px -40px rgba(48, 24, 110, 0.4);
   }
-  .vk-pts-container {
-    border-radius: 14px !important;
+
+  /* All selectors below are deliberately prefixed with `.vk-pts ...` to outrank
+     the legacy `.homepage-participants-section ...` rules in valkey-brand.css
+     (those have specificity up to 0,5,0 — for the navigation dots).
+     `.vk-pts .x .y .z .w` reaches 0,5,0 once Astro injects its `data-astro-cid`
+     attribute, so we win without `!important`. */
+
+  .vk-pts .vk-pts-container {
+    border-radius: 14px;
     overflow: hidden;
   }
 
-  /* Override the SCSS participant card treatment with scoped-class
-     specificity (beats the older cascade-order rule). */
   .vk-pts .homepage-participants-carousel .homepage-participant-card {
-    padding: 2rem 1.75rem !important;
+    padding: 2rem 1.75rem;
     position: relative;
     border-right: 1px solid rgba(48, 24, 110, 0.08);
     transition:
@@ -165,47 +170,47 @@ function blurb(p: Participant): string {
     background: #f9f7fe;
     transform: translateY(-3px);
   }
-  .vk-pts-img-wrap {
-    margin-bottom: 1.25rem !important;
+  .vk-pts .vk-pts-img-wrap {
+    margin-bottom: 1.25rem;
     min-height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .vk-pts-img {
+  .vk-pts .vk-pts-img {
     filter: grayscale(100%) contrast(0.9);
     opacity: 0.72;
     transition: filter 0.25s ease, opacity 0.25s ease;
-    max-height: 44px !important;
+    max-height: 44px;
   }
   .vk-pts .homepage-participant-card:hover .vk-pts-img {
     filter: grayscale(0%);
     opacity: 1;
   }
-  .vk-pts-name {
-    font-family: var(--valkey-sans, "Open Sans", sans-serif) !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    letter-spacing: 0 !important;
-    text-transform: none !important;
-    color: var(--valkey-deep-blue, #003b5c) !important;
+  .vk-pts .homepage-participants-carousel .homepage-participant-card .vk-pts-name {
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--valkey-deep-blue, #003b5c);
   }
-  .vk-pts-offering {
-    font-size: 0.82rem !important;
-    color: var(--valkey-text-light, #647782) !important;
+  .vk-pts .homepage-participants-carousel .homepage-participant-card .vk-pts-offering {
+    font-size: 0.82rem;
+    color: var(--valkey-text-light, #647782);
   }
 
-  .vk-pts-nav {
-    margin-top: 1.5rem !important;
+  .vk-pts .vk-pts-nav {
+    margin-top: 1.5rem;
   }
-  .vk-pts .homepage-participants-dots .homepage-participant-dot {
-    background: rgba(255, 255, 255, 0.5) !important;
-    width: 8px !important;
-    height: 8px !important;
+  .vk-pts .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot {
+    background: rgba(255, 255, 255, 0.5);
+    width: 8px;
+    height: 8px;
   }
-  .vk-pts .homepage-participants-dots .homepage-participant-dot[aria-current="true"],
-  .vk-pts .homepage-participants-dots .homepage-participant-dot.active {
-    background: #fff !important;
+  .vk-pts .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot[aria-current="true"],
+  .vk-pts .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot.active {
+    background: #fff;
   }
 
   @media (max-width: 768px) {

@@ -1,5 +1,6 @@
 ---
 import MarketingLayout from "../../../layouts/MarketingLayout.astro";
+import PageHeader from "../../../components/PageHeader.astro";
 import {
   parseReleases,
   sortDesc,
@@ -35,9 +36,7 @@ const groups = [...groupsMap.entries()].sort(([a], [b]) => {
 ---
 
 <MarketingLayout title="Releases · Valkey">
-  <div class="page-subhead">
-    <h1 class="page-title">Valkey Releases</h1>
-  </div>
+  <PageHeader title="Valkey Releases" />
 
   <section class="width-limiter releases-index">
     {groups.map(([line, lineReleases]) => (

@@ -1,36 +1,15 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
-
-// Config mirrors templates/valkey-try-me.html's page.extra / section.extra
-// block from the Zola reference (content/try-valkey/_index.md). If we later
-// want per-event variants (PyCon Africa workshop, etc.), expose these via
-// a content collection and pass them in as props.
-const STATE_FILE = "https://download.valkey.io/try-me-valkey/9.0.4/states/state.bin.gz";
-const FILESYSTEM_BASE_URL = "https://download.valkey.io/try-me-valkey/9.0.4/fs/alpine-rootfs-flat";
-const FILESYSTEM_BASE_FS = "https://download.valkey.io/try-me-valkey/9.0.4/fs/alpine-fs.json";
-
-// v86 toolchain + styling lives on download.valkey.io alongside the image.
-const V86_BASE = "https://download.valkey.io/try-me-valkey/vos";
+import TryValkeyEmulator from "../../components/TryValkeyEmulator.astro";
 ---
 
 <MarketingLayout
   title="Try Valkey · Valkey"
   description="In-browser Valkey server and CLI powered by a WebAssembly x86 emulator — no install required."
 >
-  {/* External stylesheets: xterm terminal renderer + valkey-try-me branding */}
-  <link rel="stylesheet" href={`${V86_BASE}/xterm/xterm.css`} />
-  <link rel="stylesheet" href={`${V86_BASE}/valkey-try-me.css`} />
-
-  {/* V86 + xterm + pako + the V86<->xterm serial adapter. These attach
-      V86, Terminal, pako, SerialAdapterXtermJS as globals. */}
-  <script is:inline src={`${V86_BASE}/v86/libv86.js`}></script>
-  <script is:inline src={`${V86_BASE}/xterm/xterm.min.js`}></script>
-  <script is:inline src={`${V86_BASE}/pako/pako.min.js`}></script>
-  <script is:inline src={`${V86_BASE}/v86/serial_xterm.js`}></script>
-
   <section class="try-valkey width-limiter">
     <header class="try-valkey__intro">
-      <h1>Try Valkey</h1>
+      <h1 class="page-h1">Try Valkey</h1>
       <p>
         This is an in-browser Valkey server and CLI that runs directly within
         your browser using a <a href="https://github.com/copy/v86" target="_blank" rel="noopener">V86</a>
@@ -39,251 +18,22 @@ const V86_BASE = "https://download.valkey.io/try-me-valkey/vos";
       <p>Try it out below:</p>
     </header>
 
-    <div id="terminalWrapper" class="container" style="display: none;">
-      <div id="terminal-container"></div>
-    </div>
-
-    <div id="warningContainer" style="text-align: center; margin-top: 20px;">
-      <button id="startButton" style="padding: 10px 20px; font-size: 18px; margin-top: 10px; cursor: pointer;">
-        Load Emulator
-      </button>
-      <p>This emulator will download approximately 50MB of data.</p>
-    </div>
-
-    <div id="loadingContainer" style="display: none;">
-      <p id="progressText">Preparing to load...</p>
-      <progress id="progressBar" value="0" max="100"></progress>
-    </div>
+    <TryValkeyEmulator
+      stateFile="https://download.valkey.io/try-me-valkey/9.0.4/states/state.bin.gz"
+      filesystemBaseUrl="https://download.valkey.io/try-me-valkey/9.0.4/fs/alpine-rootfs-flat"
+      filesystemBaseFs="https://download.valkey.io/try-me-valkey/9.0.4/fs/alpine-fs.json"
+      cacheKey="valkey_binary_cache"
+      lastModifiedKey="valkey_last_modified"
+    />
   </section>
-
-  <script
-    is:inline
-    define:vars={{ STATE_FILE, FILESYSTEM_BASE_URL, FILESYSTEM_BASE_FS, V86_BASE }}
-  >
-    "use strict";
-
-    // NOTE: The bulk of this script is a 1:1 port of the Zola reference
-    // at templates/valkey-try-me.html. Preserve its semantics (IndexedDB
-    // cache, Last-Modified invalidation, 10-min inactivity pause) so that
-    // parity with valkey.io is maintained.
-
-    const FILE_URL = STATE_FILE;
-    const CACHE_KEY = "valkey_binary_cache";
-    const LAST_MODIFIED_KEY = "valkey_last_modified";
-    let emulator;
-
-    // Open or create IndexedDB
-    async function openIndexedDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open("binaryCacheDB", 1);
-        request.onerror = () => reject("Error opening IndexedDB");
-        request.onsuccess = () => resolve(request.result);
-        request.onupgradeneeded = (event) => {
-          const db = event.target.result;
-          db.createObjectStore("cache", { keyPath: "key" });
-        };
-      });
-    }
-
-    // Retrieve binary from cache
-    async function getCachedBinary(db) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(["cache"], "readonly");
-        const objectStore = transaction.objectStore("cache");
-        const request = objectStore.get(CACHE_KEY);
-        request.onerror = () => reject("Error retrieving cached binary");
-        request.onsuccess = () =>
-          resolve(request.result ? request.result.data : null);
-      });
-    }
-
-    // Save binary to cache
-    async function saveBinaryToCache(db, data) {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(["cache"], "readwrite");
-        const objectStore = transaction.objectStore("cache");
-        const request = objectStore.put({ key: CACHE_KEY, data });
-        request.onerror = () => reject("Error saving binary to cache");
-        request.onsuccess = () => resolve();
-      });
-    }
-
-    // Check if binary is updated
-    async function checkIfUpdated() {
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("HEAD", FILE_URL, true);
-        xhr.onload = () => {
-          const serverLastModified = xhr.getResponseHeader("Last-Modified");
-          const cachedLastModified = localStorage.getItem(LAST_MODIFIED_KEY);
-          if (!serverLastModified || serverLastModified !== cachedLastModified) {
-            localStorage.setItem(LAST_MODIFIED_KEY, serverLastModified);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        };
-        xhr.onerror = () => reject("Error checking file version");
-        xhr.send();
-      });
-    }
-
-    // Download and decompress binary
-    function downloadAndDecompressBinary(callback) {
-      const xhr = new XMLHttpRequest();
-      xhr.open("GET", FILE_URL, true);
-      xhr.responseType = "arraybuffer";
-
-      xhr.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = (event.loaded / event.total) * 100;
-          document.getElementById("progressBar").value = percentComplete;
-        }
-      };
-
-      xhr.onload = () => {
-        if (xhr.status === 200) {
-          document.getElementById("progressText").innerText =
-            "Decompressing image...";
-          const decompressedData = pako.ungzip(new Uint8Array(xhr.response));
-          callback(decompressedData);
-        }
-      };
-
-      xhr.onerror = () => {
-        document.getElementById("progressText").innerText = "Download failed!";
-      };
-
-      xhr.send();
-    }
-
-    async function loadEmulator(decompressedData) {
-      const progressText = document.getElementById("progressText");
-
-      const blob = new Blob([decompressedData], {
-        type: "application/octet-stream",
-      });
-      const imgUrl = URL.createObjectURL(blob);
-
-      progressText.innerText = "Starting emulator...";
-
-      emulator = new V86({
-        wasm_path: `${V86_BASE}/v86/v86.wasm`,
-        memory_size: 512 * 1024 * 1024,
-        bios: { url: `${V86_BASE}/v86/bios/seabios.bin` },
-        filesystem: {
-          baseurl: FILESYSTEM_BASE_URL,
-          basefs: FILESYSTEM_BASE_FS,
-        },
-        autostart: true,
-        bzimage_initrd_from_filesystem: true,
-        cmdline:
-          "rw root=host9p rootfstype=9p rootflags=trans=virtio,cache=loose modules=virtio_pci tsc=reliable",
-        initial_state: { url: imgUrl },
-        disable_mouse: true,
-        disable_keyboard: true,
-        disable_speaker: true,
-      });
-
-      await new Promise((resolve) =>
-        emulator.add_listener("emulator-ready", resolve)
-      );
-
-      const serialAdapter = new SerialAdapterXtermJS(
-        document.getElementById("terminal-container"),
-        emulator.bus
-      );
-      serialAdapter.show();
-
-      document.getElementById("loadingContainer").style.display = "none";
-      document.getElementById("terminalWrapper").style.display = "flex";
-
-      if (emulator) {
-        resetInactivityTimer();
-        ["mousemove", "keydown", "touchstart"].forEach((event) => {
-          window.addEventListener(event, resetInactivityTimer);
-        });
-
-        serialAdapter.term.onKey(() => resetInactivityTimer());
-        serialAdapter.term.onData(() => resetInactivityTimer());
-        serialAdapter.term.onCursorMove(() => resetInactivityTimer());
-      }
-    }
-
-    let inactivityTimeout;
-    const INACTIVITY_LIMIT = 60 * 1000 * 10; // 10 minutes
-
-    function resetInactivityTimer() {
-      if (!emulator) {
-        console.warn("Emulator is not initialized yet.");
-        return;
-      }
-
-      clearTimeout(inactivityTimeout);
-
-      inactivityTimeout = setTimeout(() => {
-        if (emulator.is_running()) {
-          console.log("VM paused due to inactivity.");
-          emulator.stop();
-        }
-      }, INACTIVITY_LIMIT);
-
-      if (!emulator.is_running()) {
-        console.log("VM resumed");
-        emulator.run();
-      }
-    }
-
-    window.addEventListener("load", () => {
-      const startButton = document.getElementById("startButton");
-      startButton.addEventListener("click", async () => {
-        document.getElementById("warningContainer").style.display = "none";
-        document.getElementById("loadingContainer").style.display = "block";
-        document.getElementById("progressText").innerText =
-          "Preparing to load...";
-
-        const db = await openIndexedDB();
-
-        try {
-          const needsDownload = await checkIfUpdated();
-
-          if (needsDownload) {
-            downloadAndDecompressBinary(async (decompressedData) => {
-              await saveBinaryToCache(db, decompressedData);
-              loadEmulator(decompressedData);
-            });
-          } else {
-            const cachedBinary = await getCachedBinary(db);
-            if (cachedBinary) {
-              loadEmulator(cachedBinary);
-            } else {
-              downloadAndDecompressBinary(async (decompressedData) => {
-                await saveBinaryToCache(db, decompressedData);
-                loadEmulator(decompressedData);
-              });
-            }
-          }
-        } catch (error) {
-          console.error("Error loading binary: ", error);
-          document.getElementById("progressText").innerText =
-            "Failed to load binary.";
-        }
-      });
-    });
-  </script>
 </MarketingLayout>
 
 <style>
   /* Layout chrome — kept minimal so the external valkey-try-me.css
-     stylesheet (loaded above) can drive the emulator's own appearance. */
+     stylesheet (loaded by the TryValkeyEmulator component) can drive the
+     emulator's own appearance. */
   .try-valkey {
     padding: 3rem 1.5rem 5rem;
-  }
-  .try-valkey__intro h1 {
-    font-family: var(--valkey-cond);
-    letter-spacing: 0.02em;
-    font-size: clamp(2.25rem, 4vw, 3.5rem);
-    margin: 0 0 0.5rem;
   }
   .try-valkey__intro p {
     color: var(--valkey-text-light);
@@ -294,34 +44,5 @@ const V86_BASE = "https://download.valkey.io/try-me-valkey/vos";
   }
   .try-valkey__intro p + p {
     margin-bottom: 2rem;
-  }
-  #terminalWrapper {
-    flex-direction: column;
-    margin-top: 1.5rem;
-  }
-  #terminal-container {
-    width: 100%;
-    min-height: 480px;
-  }
-  /* Center the load/loading panels below the intro copy. */
-  #warningContainer button {
-    background: var(--valkey-blue-300);
-    color: #fff;
-    border: 0;
-    border-radius: 6px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-  }
-  #warningContainer button:hover {
-    background: var(--valkey-blue-200);
-  }
-  #loadingContainer {
-    max-width: 40rem;
-    margin: 1.5rem auto 0;
-    text-align: center;
-  }
-  #loadingContainer progress {
-    width: 100%;
-    height: 12px;
   }
 </style>

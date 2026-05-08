@@ -1,12 +1,6 @@
 ---
-// Footer ported verbatim from valkey.io (Zola reference).
-// HTML source: valkey-io.github.io/templates/default.html:129-185 +
-//              valkey-io.github.io/templates/includes/email-list.html:1-17
-// CSS  source: valkey-io.github.io/sass/_valkey.scss:391-478, _email-form.scss
-// Reference renders with html { font-size: 10px } → 1rem = 10px.
-// We port rem values as pixel equivalents so rendering matches without
-// requiring a global html font-size reset.
-const isProd = import.meta.env.PROD;
+// Footer ported from valkey.io. Scarf pixel + GTM noscript live in
+// MarketingLayout (PROD-gated); don't duplicate them here.
 ---
 
 <!-- Row 1: socials + nav links -->
@@ -100,13 +94,6 @@ const isProd = import.meta.env.PROD;
       Logo design by <a href="https://github.com/dizys" target="_blank">Ziyang.</a>
     </p>
   </div>
-  <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=4682283c-f8b7-410c-9c31-c6d7944cee8b" alt="" />
-  {isProd && (
-    <Fragment set:html={`<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MFFCB7SR"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->`} />
-  )}
 </div>
 
 <style is:global>

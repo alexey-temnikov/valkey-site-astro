@@ -42,8 +42,8 @@ export default defineConfig({
       },
       customCss: ["./src/styles/valkey-brand.css"],
       components: {
-        Header: "./src/components/starlight/Header.astro",
-        Banner: "./src/components/starlight/Banner.astro",
+        Header: "./src/components/SiteHeader.astro",
+        Banner: "./src/components/AnnouncementBanner.astro",
       },
       social: [
         {

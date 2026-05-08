@@ -1,0 +1,222 @@
+---
+/* Docs cards: periwinkle band with 4 dark-purple cards. */
+const docCards = [
+  {
+    title: "Install",
+    description:
+      "Step-by-step instructions on how to install and configure Valkey for first-time users.",
+    button: "See Installation Guide",
+    href: "/topics/installation/",
+  },
+  {
+    title: "Usage guide",
+    description:
+      "Detailed documentation on the various datatypes supported by Valkey and best practices.",
+    button: "Documentation by topic",
+    href: "/topics/",
+  },
+  {
+    title: "Valkey API",
+    description: "View the full list of Valkey commands including first-party modules.",
+    button: "Command Reference",
+    href: "/commands/",
+  },
+  {
+    title: "Clients",
+    description: "Official Valkey client libraries include support for:",
+    features: ["Python", "Java", "Go", "Node.js", "PHP", "C#"],
+    button: "Learn More",
+    href: "/clients/",
+  },
+];
+---
+
+<section class="vk-docs" aria-labelledby="vk-docs-heading">
+  <div class="vk-docs-wrap">
+    <h2 id="vk-docs-heading" class="vk-docs-heading">Documentation</h2>
+    <p class="vk-docs-lead">
+      Valkey can run as either a <strong>standalone</strong> daemon or in a
+      <strong>cluster</strong>, with options for <strong>replication</strong>
+      and <strong>high availability</strong>. Valkey natively supports a rich
+      collection of datatypes, including <strong>strings</strong>,
+      <strong>numbers</strong>, <strong>hashes</strong>,
+      <strong>lists</strong>, <strong>sets</strong>,
+      <strong>sorted sets</strong>, <strong>bitmaps</strong>,
+      <strong>hyperloglogs</strong> and more. You can operate on data
+      structures in-place with an expressive collection of commands. Valkey
+      also supports native extensibility with built-in scripting support for
+      <strong>Lua</strong> and supports <strong>module</strong> plugins to
+      create new commands, data types, and more.
+    </p>
+    <ul class="vk-docs-cards" role="list">
+      {docCards.map((c) => (
+        <li class="vk-docs-card">
+          <a href={c.href}>
+            <h3>{c.title}</h3>
+            <p>{c.description}</p>
+            {c.features && (
+              <ul class="vk-docs-features">
+                {c.features.map((f) => <li>{f}</li>)}
+              </ul>
+            )}
+            <span class="vk-docs-cta">
+              {c.button}
+              <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+                <path d="M0 5h11 M8 1l3 4-3 4" fill="none" stroke="currentColor"
+                      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* Docs: periwinkle background, dark-purple cards. */
+  .vk-docs {
+    background: #6983ff;
+    color: #fff;
+    padding: 5.5rem 1.5rem 6rem;
+    text-align: center;
+  }
+  .vk-docs-wrap { max-width: 1200px; margin: 0 auto; }
+  .vk-docs-heading {
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: clamp(2rem, 4.5vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 1.5rem;
+  }
+  .vk-docs-lead {
+    max-width: 60rem;
+    margin: 0 auto 3rem;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+  .vk-docs-lead strong { color: #fff; font-weight: 700; }
+  .vk-docs-lead a { color: #fff; text-decoration: underline; }
+
+  .vk-docs-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    text-align: left;
+  }
+  .vk-docs-card {
+    background: #2d2471;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.25s ease;
+    box-shadow: 0 10px 30px rgba(48, 24, 110, 0.25);
+  }
+  .vk-docs-card::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    right: -25%;
+    width: 85%;
+    height: 120%;
+    background: radial-gradient(ellipse at center, rgba(185, 155, 255, 0.25) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .vk-docs-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(48, 24, 110, 0.35); }
+  .vk-docs-card:hover::before { opacity: 1; }
+
+  .vk-docs-card a {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 2rem 1.75rem;
+    color: #fff;
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+  }
+  .vk-docs-card a:hover { text-decoration: none; }
+  .vk-docs-card h3 {
+    margin: 0 0 0.6rem;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: #fff;
+  }
+  .vk-docs-card p {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.82);
+    flex: 1;
+  }
+  .vk-docs-features {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+  }
+  .vk-docs-features li {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.72rem;
+    padding: 0.18rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .vk-docs-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+    margin-top: 1.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #fff;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    transition: background 0.2s ease, border-color 0.2s ease, gap 0.2s ease;
+  }
+  .vk-docs-card a:hover .vk-docs-cta {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #fff;
+    gap: 0.75rem;
+  }
+  .vk-docs-cta svg { transition: transform 0.2s ease; }
+  .vk-docs-card a:hover .vk-docs-cta svg { transform: translateX(3px); }
+
+  @media (max-width: 1100px) {
+    .vk-docs-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .vk-docs-cards { grid-template-columns: 1fr; }
+    .vk-docs { padding: 3.5rem 1rem 4rem; }
+    .vk-docs-card a { padding: 1.75rem 1.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vk-docs-card,
+    .vk-docs-card::before,
+    .vk-docs-cta,
+    .vk-docs-cta svg {
+      transition: none;
+    }
+  }
+</style>

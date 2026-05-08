@@ -110,7 +110,6 @@ function getClientLink(c: Client): string | undefined {
       marked <strong>Recommended</strong> are officially supported.
     </p>
 
-    {/* --- Fix 2: Advanced Features Overview --- */}
     <section class="advanced-features-overview">
       <h2>Advanced Features Overview</h2>
       <Fragment set:html={advancedFeaturesHtml} />
@@ -136,7 +135,6 @@ function getClientLink(c: Client): string | undefined {
                   {c.recommended && <span class="tag">Recommended</span>}
                 </header>
                 {c.description && <p>{c.description}</p>}
-                {/* --- Fix 1: Handle installation as string or array-of-objects --- */}
                 {c.installation && typeof c.installation === "string" && (
                   <pre><code>{c.installation}</code></pre>
                 )}
@@ -188,7 +186,6 @@ function getClientLink(c: Client): string | undefined {
       ))
     }
 
-    {/* --- Fix 3: Feature Comparison Table --- */}
     <section class="feature-comparison">
       <h2>Feature Comparison</h2>
       <div class="table-container">

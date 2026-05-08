@@ -1,5 +1,6 @@
 import rss from "@astrojs/rss";
 import { getCollection } from "astro:content";
+import { postHref } from "../../lib/blog";
 
 export async function GET(context: { site?: string | URL }) {
   const posts = (await getCollection("blog")).sort(
@@ -13,7 +14,7 @@ export async function GET(context: { site?: string | URL }) {
       title: post.data.title,
       description: post.data.description,
       pubDate: post.data.pubDate,
-      link: `/blog/${post.data.slug ?? post.id.replace(/^\d{4}-\d{2}-\d{2}-/, "")}/`,
+      link: postHref(post),
     })),
     customData: `<language>en-us</language>`,
   });

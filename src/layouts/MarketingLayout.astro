@@ -8,16 +8,13 @@ export interface Props {
   title: string;
   description?: string;
   bodyClass?: string;
-  image?: string;
-  noIndex?: boolean;
 }
 const {
   title,
   description = "Valkey is an open source (BSD) high-performance key/value datastore.",
   bodyClass = "",
-  image = "/img/valkey-og.png",
-  noIndex = false,
 } = Astro.props;
+const image = "/img/valkey-logo-og.png";
 
 const canonical = new URL(Astro.url.pathname, Astro.site ?? "http://127.0.0.1:4322").toString();
 
@@ -29,12 +26,32 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* Crawler / legacy-browser hints, ported verbatim from Zola head.html */}
+    <meta name="ROBOTS" content="ALL" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="" />
+    <meta name="keywords" content="open-source, valkey" />
+
     <title>{title}</title>
     <meta name="description" content={description} />
-    {noIndex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
-    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+
+    {/* Favicon suite — full set from public/img/favicon/, mirrors Zola */}
+    <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
+    <link rel="manifest" href="/img/favicon/site.webmanifest" />
+    <link rel="mask-icon" href="/img/favicon/safari-pinned-tab.svg" color="#5bbad5" />
+    <link rel="shortcut icon" href="/img/favicon/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#2d89ef" />
+    <meta name="msapplication-TileImage" content="/img/favicon/mstile-144x144.png" />
+    <meta name="msapplication-config" content="/img/favicon/browserconfig.xml" />
+    <meta name="theme-color" content="#ffffff" />
+
+    {/* Preload the most-used webfont to avoid FOIT on the hero */}
     <link rel="preload" href="/fonts/open-sans/opensans-latin-normal-400-v20.woff2" as="font" type="font/woff2" crossorigin />
 
     {/* Open Graph + Twitter */}
@@ -47,10 +64,9 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@valkey_io" />
 
-    {/* RSS feed discovery */}
+    {/* Feed discovery: site-wide Atom feed + blog RSS + sitemap */}
+    <link rel="alternate" type="application/atom+xml" title="Valkey Atom feed" href="/atom.xml" />
     <link rel="alternate" type="application/rss+xml" title="Valkey Blog" href="/blog/rss.xml" />
-
-    {/* Sitemap discovery */}
     <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
 
     {/* Osano cookie consent */}

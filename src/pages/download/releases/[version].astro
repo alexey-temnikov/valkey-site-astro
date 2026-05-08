@@ -1,7 +1,8 @@
 ---
 import MarketingLayout from "../../../layouts/MarketingLayout.astro";
+import PageHeader from "../../../components/PageHeader.astro";
 import ReleaseCard from "../../../components/ReleaseCard.astro";
-import { parseReleases, slug, type Release } from "../../../lib/releases";
+import { parseReleases, slug, formatDate, type Release } from "../../../lib/releases";
 
 export async function getStaticPaths() {
   const modules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
@@ -23,12 +24,10 @@ const { release } = Astro.props;
 ---
 
 <MarketingLayout title={`Download Valkey ${release.tag} · Valkey`}>
-  <div class="page-subhead">
-    <h1 class="page-title">Download Valkey {release.tag}</h1>
-    <p class="page-subtitle">
-      Released {release.date ? new Date(release.date).toISOString().slice(0, 10) : ""}
-    </p>
-  </div>
+  <PageHeader
+    title={`Download Valkey ${release.tag}`}
+    subtitle={`Released ${formatDate(release.date)}`}
+  />
 
   <section class="width-limiter release-page">
     <p class="release-page-lead">

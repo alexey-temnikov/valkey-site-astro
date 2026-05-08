@@ -1,25 +1,17 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
 import { getCollection } from "astro:content";
+import { communityCards } from "../../data/community";
 
 const entries = await getCollection("community");
 const sorted = entries
   .filter((p) => !p.id.endsWith("/_index") && p.id !== "_index")
   .sort((a, b) => String(a.data.title ?? a.id).localeCompare(String(b.data.title ?? b.id)));
-
-const communityCards = [
-  { icon: "icon-question.svg", title: "Ask Questions", description: "If you have any inquiries about Valkey, feel free to join the conversation on our GitHub discussions or chat with us on Slack.", links: [{ url: "https://github.com/orgs/valkey-io/discussions", text: "GitHub Repository" }, { url: "https://valkey.io/slack", text: "Slack" }] },
-  { icon: "icon-bug.svg", title: "Report Bugs", description: "If you encounter any issues while using Valkey, please help us improve the project by filing a bug report at our GitHub repository.", links: [{ url: "https://github.com/valkey-io/valkey/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=%5BBUG%5D", text: "GitHub Repository" }] },
-  { icon: "icon-users.svg", title: "Connect on Social Media", description: "Stay updated and connect with us on our social media platforms.", links: [{ url: "https://www.linkedin.com/company/valkey/", text: "LinkedIn" }, { url: "https://bsky.app/profile/valkeyio.bsky.social/", text: "Bluesky" }, { url: "https://twitter.com/valkey_io", text: "Twitter" }] },
-  { icon: "icon-bulb.svg", title: "Suggest Features", description: "We value your ideas! If you have a suggestion for a new feature, please submit a feature request on our GitHub.", links: [{ url: "https://github.com/valkey-io/valkey/issues/new?assignees=&labels=&projects=&template=feature_request.md&title=%5BNEW%5D", text: "GitHub" }] },
-  { icon: "icon-sheild.svg", title: "Security Concerns", description: "For any potential security issues, please refer to our Security Policy.", links: [{ url: "https://github.com/valkey-io/valkey/blob/unstable/SECURITY.md", text: "Learn more" }] },
-  { icon: "icon-book.svg", title: "Community Conduct", description: "If you experience any issues with community members behavior, kindly check our Code of Conduct for guidance.", links: [{ url: "/code_of_conduct", text: "Learn more" }] },
-];
 ---
 
 <MarketingLayout title="Community · Valkey" description="Join the Valkey community">
   <section class="community-page width-limiter">
-    <h1>Community</h1>
+    <h1 class="page-h1">Community</h1>
     <p class="lead">How to Contribute with us?</p>
     <p>We welcome your involvement in the Valkey community! Here are several ways you can contribute:</p>
 
@@ -56,7 +48,6 @@ const communityCards = [
 
 <style>
   .community-page { padding: 3rem 1.5rem 5rem; }
-  .community-page h1 { font-family: var(--valkey-cond); font-size: clamp(2.25rem, 4vw, 3.5rem); margin: 0 0 0.5rem; }
   .lead { color: var(--valkey-text-light); font-size: 1.05rem; margin: 0 0 0.5rem; }
   .community-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0 3rem; }
   .community-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: #fff; }

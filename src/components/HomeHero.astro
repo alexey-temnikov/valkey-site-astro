@@ -1,0 +1,203 @@
+---
+/* Hero: heading, subtitle, CTAs, instrument metric strip. */
+import HeroMetrics from "./HeroMetrics.astro";
+import { parseReleases, latestPerMajor } from "../lib/releases";
+import { getCollection } from "astro:content";
+import participants from "../data/participants.json";
+
+const releaseModules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
+  string,
+  { frontmatter: Record<string, any> }
+>;
+const allReleases = parseReleases(releaseModules);
+const latestReleases = latestPerMajor(allReleases);
+const newestRelease = latestReleases[0];
+
+const topics = await getCollection("docs");
+const topicCount = topics.filter((t) => t.id.startsWith("topics/")).length;
+
+const metricTiles = [
+  {
+    label: "Throughput",
+    value: "1M+",
+    unit: "rps",
+    caption: "Per node, single shard.",
+    spark: [32, 38, 36, 44, 52, 61, 58, 70, 82, 98, 110, 132],
+    href: "/performance/",
+  },
+  {
+    label: "Commands",
+    value: "436",
+    caption: "Core + Bloom + JSON + Search.",
+    spark: [210, 218, 240, 265, 290, 320, 355, 380, 401, 420, 428, 436],
+    href: "/commands/",
+  },
+  {
+    label: "Topics",
+    value: String(topicCount),
+    caption: "Guides, tutorials, admin.",
+    spark: [12, 18, 22, 28, 31, 38, 44, 51, 58, 66, 72, topicCount],
+    href: "/topics/",
+  },
+  {
+    label: "Participants",
+    value: String(participants.length),
+    caption: "Backing the Linux Foundation project.",
+    spark: [1, 2, 3, 5, 6, 8, 10, 12, 14, 15, 16, participants.length],
+    href: "#participants",
+  },
+];
+---
+
+<section class="vk-hero">
+  <div class="vk-hero-inner">
+    <div class="vk-hero-copy">
+      <h1 class="vk-hero-heading">FAST. RELIABLE.</h1>
+      <h1 class="vk-hero-heading">OPEN SOURCE, FOREVER.</h1>
+      <p class="vk-hero-subtitle">
+        Valkey is an open source (BSD) high-performance key/value datastore that
+        supports a variety of workloads such as caching, message queues, and can
+        act as a primary database. The project is backed by the Linux Foundation,
+        ensuring it will remain open source forever.
+      </p>
+      <div class="vk-hero-ctas">
+        <a class="vk-hero-button" href="/topics/quickstart/">GET STARTED</a>
+        <a class="vk-hero-link" href="/download/">
+          <span>Download v{newestRelease?.tag ?? "8.0"}</span>
+          <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+            <path d="M0 5h11 M8 1l3 4-3 4" fill="none" stroke="currentColor"
+                  stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-hero-metrics-wrap">
+    <HeroMetrics tiles={metricTiles} />
+  </div>
+</section>
+
+<style>
+  /* Hero: deep-purple background + image overlay. */
+  .vk-hero {
+    position: relative;
+    background:
+      linear-gradient(to bottom, rgba(48, 24, 110, 0.15), rgba(48, 24, 110, 0.75)),
+      url("/img/hero-bg.webp") right center / cover no-repeat,
+      #30186e;
+    color: #fff;
+    overflow: hidden;
+    padding: 3rem 1.5rem 0;
+    isolation: isolate;
+  }
+  .vk-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(48, 24, 110, 0) 60%, rgba(48, 24, 110, 1) 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .vk-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem 0 3rem;
+    text-align: center;
+  }
+
+  .vk-hero-copy { text-align: center; }
+  .vk-hero-heading {
+    font-family: var(--valkey-sans, "Open Sans", "Segoe UI", Tahoma, sans-serif);
+    font-weight: 700;
+    font-size: clamp(2.5rem, 5.5vw, 4.375rem); /* 40px → 70px */
+    line-height: 1;
+    letter-spacing: 0.03em; /* ≈ 2px at 70px */
+    margin: 0;
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .vk-hero-heading + .vk-hero-heading { margin-top: 0.15rem; }
+  .vk-hero-subtitle {
+    font-size: 1.05rem;
+    font-weight: 400;
+    line-height: 1.6;
+    max-width: 46rem;
+    margin: 1.5rem auto 2rem;
+    color: rgba(255, 255, 255, 0.92);
+  }
+  .vk-hero-ctas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .vk-hero-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.95rem 2.5rem;
+    border-radius: 999px;
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #6983ff;
+    background-image: linear-gradient(to right, #ffffff, #b7c2f7);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .vk-hero-button:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+  .vk-hero-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    transition: border-color 0.15s ease, gap 0.2s ease;
+  }
+  .vk-hero-link:hover {
+    text-decoration: none;
+    border-color: #fff;
+    gap: 0.75rem;
+  }
+  .vk-hero-terminal-wrap { display: none; }
+
+  .vk-hero-metrics-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 0 1rem;
+  }
+
+  @media (max-width: 960px) {
+    .vk-hero-inner {
+      padding: 2.5rem 0 3rem;
+    }
+    .vk-hero-subtitle { margin-left: auto; margin-right: auto; }
+  }
+  @media (max-width: 560px) {
+    .vk-hero { padding: 3rem 1rem 0; }
+    .vk-hero-ctas { gap: 1rem; }
+    .vk-hero-button { padding: 0.85rem 1.75rem; font-size: 1.1rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vk-hero-button,
+    .vk-hero-link {
+      transition: none;
+    }
+  }
+</style>

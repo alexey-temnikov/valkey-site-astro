@@ -1,5 +1,62 @@
 /* Valkey brand theme — shared across marketing + docs */
 
+/* Declare cascade-layer order. Our fallback layer is registered BEFORE
+   `starlight.base`, so on Starlight-rendered pages (where starlight.base
+   loads its full props.css with light/dark themes) Starlight wins for any
+   `--sl-*` token it defines. On marketing pages, only our fallback values
+   exist — sufficient to power the reused Starlight Search component. */
+@layer valkey-sl-fallback, starlight.base, starlight.reset, starlight.core,
+  starlight.content, starlight.components, starlight.utils;
+
+@layer valkey-sl-fallback {
+  :root,
+  ::backdrop {
+    /* Subset of Starlight's --sl-color-* + --sl-text-* tokens, mapped to the
+       Valkey light palette. Used by `<Search />` on every page. */
+    --sl-color-white: #ffffff;
+    --sl-color-gray-1: #1f2933;
+    --sl-color-gray-2: #002a3a;
+    --sl-color-gray-3: #647782;
+    --sl-color-gray-4: #8e9ba4;
+    --sl-color-gray-5: #ccd3d6;
+    --sl-color-gray-6: #f5f7f7;
+    --sl-color-black: #ffffff;
+    --sl-color-text: #002a3a;
+    --sl-color-text-invert: #ffffff;
+    --sl-color-backdrop-overlay: rgba(10, 20, 30, 0.55);
+    --sl-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.3);
+    --sl-text-2xs: 0.7rem;
+    --sl-text-sm: 0.875rem;
+    --sl-text-xl: 1rem;
+  }
+
+  /* Visibility utility classes Starlight components rely on (e.g. the
+     Search dialog's `Cancel` button uses `sl-flex md:sl-hidden`). These
+     normally live in @layer starlight.utils via util.css which only loads
+     on docs pages. Mirror just the ones the Search component needs so the
+     responsive layout works on marketing pages too. */
+  .sl-hidden {
+    display: none;
+  }
+  .sl-flex {
+    display: flex;
+  }
+  .sl-block {
+    display: block;
+  }
+  @media (min-width: 50rem) {
+    .md\:sl-hidden {
+      display: none;
+    }
+    .md\:sl-flex {
+      display: flex;
+    }
+    .md\:sl-block {
+      display: block;
+    }
+  }
+}
+
 /* -------- Font-face (subset, Latin only for perf) -------- */
 @font-face {
   font-family: "Open Sans";
@@ -69,7 +126,8 @@
   --valkey-serif: "Noto Serif", Georgia, serif;
   --valkey-mono: "Fira Mono", Consolas, Menlo, Monaco, monospace;
 
-  /* Starlight theme variable overrides so docs match the brand */
+  /* Starlight theme overrides — these go in the unlayered cascade so they
+     win on Starlight pages (i.e. they tint the docs to the brand palette). */
   --sl-color-accent: var(--valkey-blue-300);
   --sl-color-accent-high: var(--valkey-blue-100);
   --sl-color-accent-low: #e5edf6;
@@ -77,6 +135,7 @@
   --sl-font: var(--valkey-sans);
   --sl-font-system: var(--valkey-sans);
   --sl-font-system-mono: var(--valkey-mono);
+  --__sl-font: var(--valkey-sans);
 }
 
 :root[data-theme="light"] {
@@ -108,6 +167,19 @@ a:hover {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
+}
+
+/* -------- Starlight sidebar: selected item text must be white on accent bg.
+   Starlight's own rule uses `:where()` so contributes (0,1,0) specificity;
+   our (0,2,1) selectors win without `!important`. -------- */
+starlight-menu-button + nav a[aria-current="page"],
+.sidebar a[aria-current="page"] {
+  color: #fff;
+}
+
+/* -------- Starlight docs: banner pushed below sticky site-header overlap -------- */
+.main-pane .announcement-banner {
+  margin-top: 1.125rem;
 }
 
 /* -------- Announcement banner -------- */
@@ -224,8 +296,11 @@ a:hover {
   text-decoration: none;
 }
 
-/* -------- Search button in header -------- */
-.site-header .search-trigger {
+/* -------- Search trigger (Starlight Search reused on every page) --------
+   The trigger is a `<site-search class="vk-search">` rendered by
+   `<Search />` from @astrojs/starlight. We restyle the inner `<button>` so
+   it matches the marketing chrome (light pill, condensed kbd badge). */
+.site-header .vk-search button[data-open-modal] {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -233,45 +308,74 @@ a:hover {
   border: 1px solid var(--valkey-line);
   color: var(--valkey-text-light);
   padding: 0.4rem 0.75rem;
-  border-radius: 6px;
+  border-radius: 8px;
   font: inherit;
   font-size: 0.85rem;
+  line-height: 1;
+  height: auto;
+  width: auto;
+  max-width: none;
   cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
-.site-header .search-trigger:hover {
+.site-header .vk-search button[data-open-modal]:hover {
   border-color: var(--valkey-blue-100);
+  color: var(--valkey-text);
+  background: var(--valkey-bg-soft);
 }
-.site-header .search-trigger kbd {
+.site-header .vk-search button[data-open-modal] svg {
+  flex-shrink: 0;
+}
+.site-header .vk-search button[data-open-modal] > kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  margin-inline-start: auto;
+}
+.site-header .vk-search button[data-open-modal] > kbd > kbd {
   font-family: var(--valkey-mono);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  line-height: 1;
   background: #fff;
   border: 1px solid var(--valkey-line);
+  border-bottom-width: 2px;
   border-radius: 4px;
-  padding: 0 0.35rem;
+  padding: 0.2rem 0.35rem;
+  color: var(--valkey-text-light);
+  min-width: 1.4em;
+  text-align: center;
 }
 
-/* --------------------------------------------------------------------------
-   Page subhead band — the purple hero strip that tops secondary pages such
-   as /download/, /download/releases/, and each per-release page. Mirrors the
-   `right-aside.html` subhead block from the Zola reference.
-   -------------------------------------------------------------------------- */
-.page-subhead {
+/* Page header bands. */
+.page-subhead,
+.styled-title {
   background: linear-gradient(
     135deg,
-    var(--valkey-purple-300, #4b1e5f) 0%,
-    var(--valkey-purple-200, #692a84) 100%
+    var(--valkey-purple-300) 0%,
+    var(--valkey-purple-200) 100%
   );
   color: #fff;
   padding: 2.5rem 1.5rem;
   text-align: center;
 }
-.page-subhead .page-title {
+.styled-title {
+  background: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
+  padding: 60px 20px;
+}
+.page-subhead .page-title,
+.styled-title h1 {
   font-family: var(--valkey-cond);
   font-size: clamp(2rem, 4vw, 3rem);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   margin: 0;
   color: #fff;
+  font-weight: 700;
+  line-height: 1;
 }
 .page-subhead .page-subtitle {
   max-width: 48rem;
@@ -281,90 +385,137 @@ a:hover {
   line-height: 1.5;
 }
 
-/* -------- Hero -------- */
-.hero {
-  background:
-    linear-gradient(180deg, rgba(48, 24, 110, 0.55) 0%, rgba(48, 24, 110, 0.85) 100%),
-    url("/img/hero-bg.webp") center/cover no-repeat,
-    var(--valkey-deep-blue);
-  color: #fff;
-  padding: 6rem 1.5rem 7rem;
-  text-align: center;
+/* --------------------------------------------------------------------------
+   Shared page chrome: breadcrumbs, post-footer (back link), badges,
+   section heading, and prose.
+   -------------------------------------------------------------------------- */
+.breadcrumbs {
+  font-size: 0.85rem;
+  color: var(--valkey-text-light);
+  margin-bottom: 1.5rem;
 }
-.hero h1 {
-  font-family: var(--valkey-cond);
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  line-height: 1.05;
-  letter-spacing: 0.02em;
-  margin: 0;
-  text-transform: uppercase;
+.breadcrumbs a {
+  color: var(--valkey-blue-300);
 }
-.hero h1 + h1 {
-  margin-top: 0.25rem;
-}
-.hero .subtitle {
-  max-width: 52rem;
-  margin: 1.5rem auto 2rem;
-  font-size: 1.05rem;
-  line-height: 1.6;
-  opacity: 0.95;
-}
-.hero .cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #fff;
-  color: var(--valkey-purple-300);
-  padding: 1rem 2.5rem;
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  font-size: 1rem;
-  text-transform: uppercase;
-  transition: transform 0.15s ease;
-}
-.hero .cta:hover {
-  transform: translateY(-1px);
-  text-decoration: none;
+.breadcrumbs .sep {
+  margin: 0 0.4rem;
+  color: var(--valkey-line);
 }
 
-/* -------- Doc cards on homepage -------- */
-.doc-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-  padding: 4rem 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
+.post-footer {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--valkey-line);
 }
-.doc-card {
-  border: 1px solid var(--valkey-line);
-  border-radius: 12px;
-  padding: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  background: #fff;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
-.doc-card:hover {
-  border-color: var(--valkey-blue-100);
-  box-shadow: 0 8px 24px rgba(0, 85, 166, 0.08);
-}
-.doc-card h3 {
-  margin: 0;
-  color: var(--valkey-text);
-}
-.doc-card p {
-  color: var(--valkey-text-light);
-  margin: 0;
-  flex: 1;
-}
-.doc-card .card-button {
-  align-self: flex-start;
+.post-footer .back {
   color: var(--valkey-blue-300);
   font-weight: 600;
-  margin-top: 0.5rem;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--valkey-purple-300);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.section-heading {
+  font-family: var(--valkey-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--valkey-deep-blue);
+  margin: 0;
+}
+
+/* Page H1 — used on all top-level marketing/landing pages. */
+.page-h1 {
+  font-family: var(--valkey-cond);
+  letter-spacing: 0.02em;
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  margin: 0 0 0.5rem;
+}
+
+/* Body lead paragraph that follows .page-h1. */
+.page-lead {
+  color: var(--valkey-text-light);
+  font-size: 1.05rem;
+  max-width: 50rem;
+  margin: 0 0 2rem;
+}
+
+.prose {
+  line-height: 1.7;
+}
+.prose a {
+  color: var(--valkey-blue-300);
+}
+.prose ul,
+.prose ol {
+  padding-left: 1.25rem;
+}
+.prose li {
+  margin-bottom: 0.4rem;
+}
+.prose strong {
+  color: var(--valkey-deep-blue);
+}
+.prose h2 {
+  font-family: var(--valkey-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--valkey-deep-blue);
+  margin-top: 2rem;
+  font-size: 1.5rem;
+}
+.prose h3 {
+  color: var(--valkey-deep-blue);
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+}
+.prose p {
+  margin: 0 0 1rem;
+}
+.prose code {
+  font-family: var(--valkey-mono);
+  background: var(--valkey-bg-soft);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid var(--valkey-line);
+  font-size: 0.9em;
+}
+.prose pre {
+  background: #1e1e2e;
+  color: #f5f5f5;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: var(--valkey-mono);
+  font-size: 0.85rem;
+}
+.prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+.prose blockquote {
+  border-left: 4px solid var(--valkey-blue-200);
+  padding: 0.5rem 1rem;
+  background: var(--valkey-bg-soft);
+  border-radius: 0 8px 8px 0;
+  margin: 1rem 0;
 }
 
 /* -------- GitHub stars badge -------- */
@@ -518,5 +669,268 @@ a:hover {
   }
   .site-header nav .github-button {
     align-self: flex-start;
+  }
+}
+
+/* Homepage participant carousel — class hooks bind to public/assets/js/carousel.js. Do not rename. */
+
+.homepage-participants-section {
+  background: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
+  padding: 80px 0;
+}
+
+.homepage-participants-section .homepage-participants-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.homepage-participants-section .homepage-participants-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.homepage-participants-section .homepage-participants-title {
+  color: #fff;
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  letter-spacing: -1px;
+}
+
+.homepage-participants-section .homepage-participants-description {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  opacity: 0.95;
+}
+
+.homepage-participants-section .homepage-participants-error {
+  background: #fff;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+}
+
+.homepage-participants-section .homepage-participants-error p {
+  color: var(--valkey-text-light);
+  font-size: 16px;
+  margin: 0;
+}
+
+.homepage-participants-section .homepage-participants-carousel-container {
+  background: #fff;
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.homepage-participants-section .homepage-participants-carousel {
+  overflow: hidden;
+  position: relative;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participants-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  width: 100%;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card {
+  flex: 0 0 33.33%;
+  min-width: 0;
+  min-height: 100%;
+  border-radius: 12px;
+  padding: 40px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-image {
+  object-fit: contain;
+  max-height: 40px;
+  margin-inline: auto;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-image-placeholder {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--valkey-text);
+  text-align: center;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--valkey-text-light);
+  margin: 0;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* The original SCSS renders `offering | markdown` — so the offering block
+   contains <p>, <a>, <strong> etc. Make them inherit the small-text colour. */
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering p {
+  margin: 0 0 0.5em;
+}
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering p:last-child {
+  margin: 0;
+}
+
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering a {
+  color: #0053b8;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering a:hover {
+  color: #137cc1;
+  text-decoration: underline;
+}
+
+.homepage-participants-section .homepage-participants-navigation {
+  display: flex;
+  justify-content: center;
+  margin-top: 12.5px;
+}
+
+.homepage-participants-section .homepage-participants-navigation .homepage-participants-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot:hover,
+.homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot:focus {
+  background: #000;
+  transform: scale(1.1);
+  outline-offset: 2px;
+}
+
+.homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot[aria-current="true"],
+.homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot.active {
+  background: #000;
+  transform: scale(1.2);
+}
+
+/* Responsive design for homepage participant carousel — matches the original
+   3-tier layout (3 / 2 / 1 cards per slide) that carousel.js relies on. */
+@media (max-width: 1200px) {
+  .homepage-participants-section .homepage-participants-carousel .homepage-participant-card {
+    flex: 0 0 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-participants-section {
+    padding: 60px 20px;
+  }
+
+  .homepage-participants-section .homepage-participants-container {
+    padding: 0 15px;
+  }
+
+  .homepage-participants-section .homepage-participants-title {
+    font-size: 36px;
+  }
+
+  .homepage-participants-section .homepage-participants-description {
+    font-size: 16px;
+    max-width: 100%;
+  }
+
+  .homepage-participants-section .homepage-participants-carousel .homepage-participant-card {
+    flex: 0 0 100%;
+    padding: 18px;
+  }
+
+  .homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-image-container {
+    margin-bottom: 15px;
+  }
+
+  .homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-name {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .homepage-participants-section .homepage-participants-carousel .homepage-participant-card .homepage-participant-offering {
+    font-size: 13px;
+  }
+
+  .homepage-participants-section .homepage-participants-navigation {
+    margin-top: 20px;
+  }
+
+  .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots {
+    gap: 7.5px;
+  }
+
+  .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot {
+    width: 7.5px;
+    height: 7.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .homepage-participants-section .homepage-participants-carousel .homepage-participant-card {
+    padding: 15px;
+  }
+
+  .homepage-participants-section .homepage-participants-title {
+    font-size: 30px;
+  }
+
+  .homepage-participants-section .homepage-participants-description {
+    font-size: 15px;
+  }
+
+  .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots {
+    gap: 10px;
+  }
+
+  .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot {
+    width: 10px;
+    height: 10px;
   }
 }

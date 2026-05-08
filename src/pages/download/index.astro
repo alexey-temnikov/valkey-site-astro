@@ -1,5 +1,6 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import PageHeader from "../../components/PageHeader.astro";
 import ReleaseCard from "../../components/ReleaseCard.astro";
 import { parseReleases, latestPerMajor } from "../../lib/releases";
 
@@ -14,9 +15,7 @@ const [newest, ...pastMajors] = latest;
 ---
 
 <MarketingLayout title="Download · Valkey">
-  <div class="page-subhead">
-    <h1 class="page-title">Download Latest</h1>
-  </div>
+  <PageHeader title="Download Latest" />
 
   <section class="width-limiter download-page">
     <p class="download-lead">

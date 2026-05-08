@@ -1,0 +1,20 @@
+---
+export interface Props {
+  title: string;
+  subtitle?: string;
+  /** "subhead" = purple gradient strip, "banner" = taller two-tone banner */
+  variant?: "subhead" | "banner";
+}
+const { title, subtitle, variant = "subhead" } = Astro.props;
+const className = variant === "banner" ? "styled-title" : "page-subhead";
+---
+
+<div class={className}>
+  {variant === "banner" ? (
+    <h1>{title}</h1>
+  ) : (
+    <h1 class="page-title">{title}</h1>
+  )}
+  {subtitle && <p class="page-subtitle">{subtitle}</p>}
+  <slot />
+</div>

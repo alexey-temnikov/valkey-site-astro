@@ -1,5 +1,5 @@
 ---
-import SearchOverlay from "./SearchOverlay.astro";
+import Search from "@astrojs/starlight/components/Search.astro";
 
 const currentPath = Astro.url.pathname;
 const isActive = (href: string) =>
@@ -52,20 +52,7 @@ const isActive = (href: string) =>
       <a href="/participants/" class={isActive("/participants/") ? "active" : undefined}>Participants</a>
       <a href="/try-valkey/" class={isActive("/try-valkey/") ? "active" : undefined}>Try Valkey</a>
 
-      <button
-        type="button"
-        class="search-trigger"
-        data-open-search
-        aria-label="Search the site"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="11" cy="11" r="7"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <span>Search</span>
-        <kbd>⌘K</kbd>
-      </button>
+      <Search class="vk-search" />
 
       <a href="https://github.com/valkey-io" class="github-button" target="_blank" rel="noopener">
         <img src="/img/IconGithub.svg" alt="" width="16" height="16" />
@@ -77,8 +64,9 @@ const isActive = (href: string) =>
 </header>
 
 <script>
-  // Search: the SearchOverlay component (mounted below) handles ⌘K and any
-  // button with [data-open-search] via a global listener — nothing to do here.
+  // Search trigger + dialog come from Starlight (`<Search />`), which handles
+  // ⌘K and Ctrl+K natively, lazy-loads PagefindUI from /pagefind/, and
+  // injects translations.
 
   // Mobile menu toggle
   const toggle = document.querySelector<HTMLButtonElement>("[data-mobile-menu-toggle]");
@@ -120,5 +108,3 @@ const isActive = (href: string) =>
     }
   })();
 </script>
-
-<SearchOverlay />

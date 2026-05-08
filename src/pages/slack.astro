@@ -1,0 +1,58 @@
+---
+/**
+ * /slack/ — redirect to the Valkey Slack invite.
+ *
+ * Verbatim port of content/slack.md. Uses a 0s meta-refresh plus an inline
+ * JS redirect (both supported by the noscript fallback in the body link) so
+ * the UX matches valkey.io/slack exactly: instant navigation + text fallback.
+ *
+ * NOTE: the shared header lives inside SiteHeader, which also exposes a
+ * `valkey.io/slack` link. Keeping this page means existing bookmarks and
+ * footer shortcuts stay functional.
+ */
+const slackUrl =
+  "https://join.slack.com/t/valkey-oss-developer/shared_invite/zt-2nxs51chx-EB9hu9Qdch3GMfRcztTSkQ";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Refresh" content={`0; url='${slackUrl}'`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={slackUrl} />
+    <title>Connect to Slack · Valkey</title>
+    <style>
+      body {
+        font-family: "Open Sans", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: #fff;
+        color: #0b1628;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        padding: 1.5rem;
+        text-align: center;
+      }
+      main { max-width: 36rem; }
+      h1 { font-size: 1.4rem; margin: 0 0 0.5rem; }
+      p { line-height: 1.5; }
+      a { color: #2b77d3; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Connect to Slack</h1>
+      <p>
+        Redirecting to Slack. If it doesn't happen automatically, use this{" "}
+        <a href={slackUrl}>Slack invitation</a>.
+      </p>
+      <script is:inline define:vars={{ slackUrl }}>
+        // JS redirect as a fallback for clients that suppress meta-refresh.
+        location.replace(slackUrl);
+      </script>
+    </main>
+  </body>
+</html>

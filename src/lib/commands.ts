@@ -237,7 +237,9 @@ export function argsToUsage(args: CommandArg[] | undefined): string {
   return parts.join(" ");
 }
 
+let _grouped: Record<string, Command[]> | null = null;
 export function groupedCommands(): Record<string, Command[]> {
+  if (_grouped) return _grouped;
   const { commands } = getCommandData();
   const byGroup: Record<string, Command[]> = {};
   for (const c of commands) {
@@ -247,6 +249,7 @@ export function groupedCommands(): Record<string, Command[]> {
   for (const key of Object.keys(byGroup)) {
     byGroup[key].sort((a, b) => a.title.localeCompare(b.title));
   }
+  _grouped = byGroup;
   return byGroup;
 }
 

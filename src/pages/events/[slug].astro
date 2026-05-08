@@ -67,7 +67,7 @@ const footerAddHtml = renderInlineMarkdown(entry.data.footer_add);
     </div>
 
     <div class="event-single">
-      <main>
+      <article>
         <nav class="breadcrumbs" aria-label="Breadcrumb">
           <a href="/events/">Events</a> <span class="sep">›</span>
           <span aria-current="page">{entry.data.title}</span>
@@ -84,36 +84,13 @@ const footerAddHtml = renderInlineMarkdown(entry.data.footer_add);
         <footer class="post-footer">
           <a href="/events/" class="back">← Back to events</a>
         </footer>
-      </main>
+      </article>
     </div>
   </MarketingLayout>
 )}
 
 <style is:global>
-  /* Event page — ported from valkey-io.github.io/sass/_valkey.scss
-       .styled-title (global):                           2870-2893
-       .styled-title.event-title img:                    1052-1055
-       .event-single + .event-single main:               1056-1066
-       .keyspace-2025 body-class override (nebula bg):   1072-1097
-     Image path updated for Astro: /events/keyspace-2025/... is served from
-     public/events/keyspace-2025/... (parity with reference).
-  */
-  .styled-title {
-    background-image: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
-    color: #ffffff;
-    text-align: center;
-    padding: 80px 20px;
-  }
-  .styled-title h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 1;
-    color: #ffffff;
-    margin: 0 auto;
-    padding: 0;
-    background: none;
-    border: none;
-  }
+  /* Event page — image-variant banner plus event-single layout. */
   .styled-title.event-title img {
     width: 33%;
     max-width: 500px;
@@ -133,27 +110,8 @@ const footerAddHtml = renderInlineMarkdown(entry.data.footer_add);
     padding: 2rem;
     width: 100%;
   }
-  .event-single .breadcrumbs {
-    font-size: 0.85rem;
-    color: var(--valkey-text-light);
-    margin-bottom: 1.5rem;
-  }
-  .event-single .breadcrumbs a { color: var(--valkey-blue-300); }
-  .event-single .breadcrumbs .sep { margin: 0 0.4rem; color: var(--valkey-line); }
 
-  .event-single .prose { line-height: 1.7; font-size: 1.02rem; }
-  .event-single .prose h2 {
-    font-family: var(--valkey-cond);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    color: var(--valkey-deep-blue);
-    margin-top: 2rem;
-    font-size: 1.5rem;
-  }
-  .event-single .prose h3 { color: var(--valkey-text); margin-top: 1.75rem; }
   .event-single .prose iframe { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
-  .event-single .prose ul { padding-left: 1.5rem; }
-  .event-single .prose a { color: var(--valkey-blue-300); }
 
   .event-single .footer-add {
     margin-top: 2rem;
@@ -163,13 +121,6 @@ const footerAddHtml = renderInlineMarkdown(entry.data.footer_add);
     color: var(--valkey-text-light);
   }
   .event-single .footer-add a { color: var(--valkey-blue-300); }
-
-  .event-single .post-footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--valkey-line);
-  }
-  .event-single .post-footer .back { color: var(--valkey-blue-300); font-weight: 600; }
 
   /* body_class = "keyspace-2025" — nebula hero background + dark theme.
      Image path uses /events/keyspace-2025/... to match the reference URL. */

@@ -3,6 +3,7 @@
 // Renders the author's frontmatter (name, photo, github) and body (bio),
 // plus an aside listing all other authors for quick navigation.
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import PageHeader from "../../components/PageHeader.astro";
 import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
@@ -25,12 +26,10 @@ const { name, photo, github, tsc } = entry.data;
   title={`${name} · Valkey`}
   description={`Valkey contributor: ${name}${tsc?.affiliation ? ` at ${tsc.affiliation}` : ""}.`}
 >
-  <div class="styled-title">
-    <h1>{name}</h1>
-  </div>
+  <PageHeader title={name} variant="banner" />
 
   <div class="width-limiter author-page">
-    <main class="container right-aside">
+    <article class="container right-aside">
       <nav class="breadcrumbs" aria-label="Breadcrumb">
         <a href="/authors/">Authors</a> <span class="sep">›</span>
         <span aria-current="page">{name}</span>
@@ -65,7 +64,7 @@ const { name, photo, github, tsc } = entry.data;
       <footer class="post-footer">
         <a href="/authors/" class="back">← All authors</a>
       </footer>
-    </main>
+    </article>
 
     <aside class="author-aside">
       <h4>Other Authors</h4>
@@ -83,21 +82,6 @@ const { name, photo, github, tsc } = entry.data;
 </MarketingLayout>
 
 <style>
-  /* Styled title banner — same purple gradient the event pages use. */
-  .styled-title {
-    background-image: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
-    color: #fff;
-    text-align: center;
-    padding: 60px 20px;
-  }
-  .styled-title h1 {
-    font-family: var(--valkey-cond);
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 700;
-    margin: 0;
-    color: #fff;
-  }
-
   .author-page {
     padding: 2rem 1.5rem 5rem;
     display: grid;
@@ -108,19 +92,6 @@ const { name, photo, github, tsc } = entry.data;
     .author-page {
       grid-template-columns: minmax(0, 1fr) 260px;
     }
-  }
-
-  .breadcrumbs {
-    font-size: 0.85rem;
-    color: var(--valkey-text-light);
-    margin-bottom: 1.5rem;
-  }
-  .breadcrumbs a {
-    color: var(--valkey-blue-300);
-  }
-  .breadcrumbs .sep {
-    margin: 0 0.4rem;
-    color: var(--valkey-line);
   }
 
   .author-container {
@@ -177,16 +148,6 @@ const { name, photo, github, tsc } = entry.data;
   }
   .bio :global(a) {
     color: var(--valkey-blue-300);
-  }
-
-  .post-footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--valkey-line);
-  }
-  .post-footer .back {
-    color: var(--valkey-blue-300);
-    font-weight: 600;
   }
 
   .author-aside {

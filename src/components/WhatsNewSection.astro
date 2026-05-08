@@ -1,0 +1,554 @@
+---
+/* What's new: release masthead, past-majors accordion, performance, blog posts. */
+import ReleaseCard from "./ReleaseCard.astro";
+import { parseReleases, latestPerMajor } from "../lib/releases";
+import { dashboards as perfDashboards } from "../data/perf";
+import { postSlug, formatPostDate } from "../lib/blog";
+import { getCollection } from "astro:content";
+import { marked } from "marked";
+
+const releaseModules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
+  string,
+  { frontmatter: Record<string, any> }
+>;
+const allReleases = parseReleases(releaseModules);
+const latestReleases = latestPerMajor(allReleases);
+const [newestRelease, ...pastMajorReleases] = latestReleases;
+const latestMajor = newestRelease ? newestRelease.tag.split(".")[0] : "8";
+
+const allPosts = await getCollection("blog");
+const latestPosts = allPosts
+  .sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime())
+  .slice(0, 3);
+---
+
+<section class="vk-whats-new" aria-labelledby="vk-whats-new-heading">
+  <div class="vk-whats-new-wrap">
+    <h2 id="vk-whats-new-heading" class="vk-whats-new-heading">What's new</h2>
+
+    <div class="vk-whats-new-inner">
+      {newestRelease && (
+        <article class="vk-wn-release">
+          <div class="vk-wn-release-meta">
+            <span class="meta-label">Current release</span>
+            <time>
+              {new Date(newestRelease.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </time>
+          </div>
+          <div class="vk-wn-release-version">
+            <span class="v-major">{latestMajor}</span>
+            <span class="v-rest">.{newestRelease.tag.split(".").slice(1).join(".")}</span>
+          </div>
+          <div class="vk-wn-release-card">
+            <ReleaseCard release={newestRelease} heading="none" />
+          </div>
+          {pastMajorReleases.length > 0 && (
+            <section class="vk-wn-past" aria-labelledby="vk-wn-past-heading">
+              <div class="vk-wn-past-head">
+                <h3 id="vk-wn-past-heading" class="vk-wn-past-title">
+                  Latest supported version of past releases
+                </h3>
+                <span class="vk-wn-past-count">
+                  {pastMajorReleases.length} version{pastMajorReleases.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <ul class="vk-wn-past-list" role="list">
+                {pastMajorReleases.map((r) => {
+                  const maj = r.tag.split(".")[0];
+                  return (
+                    <li class="vk-wn-past-item">
+                      <details>
+                        <summary>
+                          <span class="past-v-major">{maj}<span class="past-v-rest">.x.x</span></span>
+                          <span class="past-v-meta">
+                            <span class="past-v-tag">v{r.tag}</span>
+                            <span class="past-v-date">
+                              {new Date(r.date).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </span>
+                          <span class="past-v-toggle" aria-hidden="true">+</span>
+                        </summary>
+                        <div class="past-v-body">
+                          <ReleaseCard release={r} heading="none" />
+                        </div>
+                      </details>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+        </article>
+      )}
+
+      <aside class="vk-wn-side">
+        <article class="vk-wn-perf">
+          <h3>Performance</h3>
+          {perfDashboards.map((d) => (
+            <div class="vk-wn-perf-inner">
+              <h4>
+                <a href={d.link} set:html={marked.parseInline(d.title, { async: false })} />
+              </h4>
+              <div class="vk-wn-perf-desc" set:html={marked.parse(d.description, { async: false })} />
+              <svg class="vk-wn-perf-chart" viewBox="0 0 260 60" aria-hidden="true">
+                <defs>
+                  <linearGradient id="perfFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#fff" stop-opacity="0.55" />
+                    <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M0,48 L20,44 L40,46 L60,40 L80,36 L100,32 L120,26 L140,22 L160,18 L180,12 L200,10 L220,8 L240,6 L260,4 L260,60 L0,60 Z"
+                  fill="url(#perfFill)"
+                />
+                <path
+                  d="M0,48 L20,44 L40,46 L60,40 L80,36 L100,32 L120,26 L140,22 L160,18 L180,12 L200,10 L220,8 L240,6 L260,4"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="1.75"
+                  stroke-linejoin="round"
+                  stroke-linecap="round"
+                />
+                <circle cx="260" cy="4" r="3" fill="#fff" />
+              </svg>
+              <a href={d.link} class="vk-wn-perf-cta">
+                Explore
+                <svg width="14" height="8" viewBox="0 0 14 8" aria-hidden="true">
+                  <path d="M0 4h11 M8 1l3 3-3 3" fill="none" stroke="currentColor"
+                        stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </a>
+            </div>
+          ))}
+        </article>
+
+        <article class="vk-wn-blog">
+          <div class="vk-wn-blog-head">
+            <h3>Latest posts</h3>
+            <a class="vk-wn-blog-all" href="/blog/">All posts →</a>
+          </div>
+          <ul class="vk-wn-blog-list" role="list">
+            {latestPosts.map((post) => {
+              const slug = postSlug(post);
+              return (
+                <li class="vk-wn-blog-item">
+                  <a href={`/blog/${slug}/`}>
+                    <time>
+                      {formatPostDate(new Date(post.data.pubDate), "short")}
+                    </time>
+                    <h4>{post.data.title}</h4>
+                    {post.data.description && <p>{post.data.description}</p>}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </article>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* What's new: purple gradient + frosted inner container. */
+  .vk-whats-new {
+    background-image: linear-gradient(rgb(48, 23, 110), rgb(105, 131, 255));
+    padding: 5rem 1.5rem 5.5rem;
+    color: #fff;
+  }
+  .vk-whats-new-wrap { max-width: 1200px; margin: 0 auto; }
+  .vk-whats-new-heading {
+    margin: 0 0 2.5rem;
+    text-align: center;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: clamp(2rem, 4.5vw, 3.75rem);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .vk-whats-new-inner {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 2rem;
+    padding: 2.5rem;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  @media (max-width: 900px) {
+    .vk-whats-new-inner {
+      grid-template-columns: 1fr;
+      padding: 1.75rem;
+      gap: 1.5rem;
+    }
+  }
+
+  /* Release masthead */
+  .vk-wn-release {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.75rem;
+    color: var(--valkey-text, #002a3a);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+  .vk-wn-release-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--valkey-text-light, #647782);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    margin-bottom: 0.25rem;
+  }
+  .vk-wn-release-meta .meta-label { color: var(--valkey-blue-300, #0055a6); font-weight: 600; }
+  .vk-wn-release-version {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    line-height: 0.9;
+    color: var(--valkey-deep-blue, #003b5c);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    margin: 0.25rem 0 1rem;
+  }
+  .vk-wn-release-version .v-major { font-size: clamp(3.5rem, 7vw, 5.5rem); color: var(--valkey-purple-200, #692a84); }
+  .vk-wn-release-version .v-rest {
+    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
+    color: var(--valkey-purple-100, #8736aa);
+    margin-left: 0.15em;
+  }
+  .vk-wn-release-card :global(.release-section) { margin: 0; }
+  .vk-wn-release-card :global(.release-section h4) {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 1rem;
+    color: var(--valkey-deep-blue, #003b5c);
+    margin-top: 1.2rem;
+  }
+  .vk-wn-release-card :global(.release-section p) {
+    font-size: 0.92rem;
+    margin: 0.4rem 0;
+    color: var(--valkey-text, #002a3a);
+  }
+  .vk-wn-release-card :global(.release-section code) {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    background: var(--valkey-bg-soft, #f5f7f7);
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+  .vk-wn-release-card :global(.release-section hr) {
+    margin: 1rem 0;
+    border: 0;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+  }
+  .vk-wn-release-card :global(.release-section ul) { padding-left: 1.25rem; }
+
+  /* Past releases accordion */
+  .vk-wn-past {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--valkey-line, #ccd3d6);
+  }
+  .vk-wn-past-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0 0 0.85rem;
+  }
+  .vk-wn-past-title {
+    margin: 0;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue, #003b5c);
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .vk-wn-past-count {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--valkey-text-light, #647782);
+    white-space: nowrap;
+  }
+  .vk-wn-past-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .vk-wn-past-item details {
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    border-radius: 8px;
+    background: var(--valkey-bg-soft, #f5f7f7);
+    overflow: hidden;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .vk-wn-past-item details[open] {
+    background: #fff;
+    border-color: var(--valkey-blue-100, #337ec6);
+  }
+  .vk-wn-past-item summary {
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.7rem 0.9rem;
+    list-style: none;
+  }
+  .vk-wn-past-item summary::-webkit-details-marker { display: none; }
+  .vk-wn-past-item summary:hover { background: rgba(0, 85, 166, 0.04); }
+  .past-v-major {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--valkey-purple-200, #692a84);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+  }
+  .past-v-major .past-v-rest {
+    color: var(--valkey-purple-100, #8736aa);
+    font-size: 0.75em;
+    margin-left: 0.05em;
+  }
+  .past-v-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .past-v-tag {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.82rem;
+    color: var(--valkey-deep-blue, #003b5c);
+    font-weight: 600;
+  }
+  .past-v-date {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.68rem;
+    color: var(--valkey-text-light, #647782);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .past-v-toggle {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--valkey-blue-300, #0055a6);
+    width: 1.75rem;
+    height: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    background: #fff;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    line-height: 1;
+  }
+  .vk-wn-past-item details[open] .past-v-toggle {
+    transform: rotate(45deg);
+    background: var(--valkey-blue-300, #0055a6);
+    color: #fff;
+    border-color: var(--valkey-blue-300, #0055a6);
+  }
+  .past-v-body {
+    padding: 0 0.9rem 0.9rem;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+    background: #fff;
+  }
+  .past-v-body :global(.release-section) { margin: 0.75rem 0 0; }
+  .past-v-body :global(.release-section h4) {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 0.88rem;
+    color: var(--valkey-deep-blue, #003b5c);
+    margin-top: 1rem;
+  }
+  .past-v-body :global(.release-section p) {
+    font-size: 0.85rem;
+    margin: 0.35rem 0;
+    color: var(--valkey-text, #002a3a);
+  }
+  .past-v-body :global(.release-section code) {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    background: var(--valkey-bg-soft, #f5f7f7);
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.82em;
+  }
+  .past-v-body :global(.release-section hr) {
+    margin: 0.75rem 0;
+    border: 0;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+  }
+  .past-v-body :global(.release-section ul) {
+    padding-left: 1.1rem;
+    margin: 0.25rem 0;
+    font-size: 0.82rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vk-wn-past-item details,
+    .past-v-toggle {
+      transition: none;
+    }
+  }
+
+  /* Performance + blog stacked right column */
+  .vk-wn-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .vk-wn-perf,
+  .vk-wn-blog {
+    padding: 1.5rem 1.75rem;
+    border-radius: 14px;
+  }
+  .vk-wn-perf {
+    background: linear-gradient(160deg, #2d2471 0%, #4b1e5f 100%);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  }
+  .vk-wn-perf h3 {
+    margin: 0 0 0.75rem;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: #fff;
+  }
+  .vk-wn-perf h4 {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.3;
+  }
+  .vk-wn-perf h4 a { color: inherit; text-decoration: none; }
+  .vk-wn-perf h4 a:hover { text-decoration: underline; }
+  .vk-wn-perf-desc { font-size: 0.88rem; line-height: 1.5; color: rgba(255, 255, 255, 0.85); }
+  .vk-wn-perf-desc :global(a) { color: #fff; text-decoration: underline; }
+  .vk-wn-perf-desc :global(p) { margin: 0.25rem 0 0.5rem; }
+  .vk-wn-perf-chart {
+    display: block;
+    width: 100%;
+    height: 56px;
+    margin: 0.6rem 0;
+  }
+  .vk-wn-perf-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #fff;
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.85rem;
+    padding-top: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+    padding-bottom: 2px;
+    align-self: flex-start;
+  }
+  .vk-wn-perf-cta:hover { text-decoration: none; border-color: #fff; }
+  .vk-wn-perf-cta svg { transition: transform 0.2s ease; }
+  .vk-wn-perf-cta:hover svg { transform: translateX(3px); }
+
+  .vk-wn-blog {
+    background: #fff;
+    color: var(--valkey-text, #002a3a);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  }
+  .vk-wn-blog-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.3rem;
+    border-bottom: 1px solid var(--valkey-line, #ccd3d6);
+  }
+  .vk-wn-blog h3 {
+    margin: 0;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--valkey-deep-blue, #003b5c);
+  }
+  .vk-wn-blog-all {
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--valkey-blue-300, #0055a6);
+  }
+  .vk-wn-blog-all:hover { text-decoration: none; color: var(--valkey-purple-200, #692a84); }
+  .vk-wn-blog-list { list-style: none; margin: 0; padding: 0; }
+  .vk-wn-blog-item { border-bottom: 1px solid var(--valkey-line, #ccd3d6); }
+  .vk-wn-blog-item:last-child { border-bottom: 0; }
+  .vk-wn-blog-item a {
+    display: block;
+    padding: 0.8rem 0;
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+  .vk-wn-blog-item a:hover { text-decoration: none; transform: translateX(3px); }
+  .vk-wn-blog-item a:hover h4 { color: var(--valkey-purple-200, #692a84); }
+  .vk-wn-blog-item time {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--valkey-text-light, #647782);
+    display: block;
+    margin-bottom: 0.2rem;
+  }
+  .vk-wn-blog-item h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.98rem;
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--valkey-deep-blue, #003b5c);
+    transition: color 0.15s ease;
+  }
+  .vk-wn-blog-item p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--valkey-text-light, #647782);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vk-wn-blog-item a {
+      transition: none;
+    }
+  }
+</style>

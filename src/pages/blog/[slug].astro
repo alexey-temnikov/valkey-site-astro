@@ -2,6 +2,7 @@
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
 import AuthorBios from "../../components/AuthorBios.astro";
 import { getCollection, render } from "astro:content";
+import { postSlug, formatPostDate } from "../../lib/blog";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
@@ -23,18 +24,6 @@ export async function getStaticPaths() {
 
 const { post, newer, older } = Astro.props;
 const { Content } = await render(post);
-
-function formatDate(d: Date) {
-  return d.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function postSlug(p: any) {
-  return p.data.slug ?? p.id.replace(/^\d{4}-\d{2}-\d{2}-/, "");
-}
 
 // Resolve author handles to real names for the top-of-post byline. Each
 // author has a canonical record in the `authors` content collection; we
@@ -70,7 +59,7 @@ const shareUrl = encodeURIComponent(pageUrl);
     <header>
       {post.data.types[0] && <span class="badge">{post.data.types[0]}</span>}
       <h1>{post.data.title}</h1>
-      <p class="meta">{formatDate(post.data.pubDate)}</p>
+      <p class="meta">{formatPostDate(post.data.pubDate, "long")}</p>
     </header>
 
     {resolvedAuthors.length > 0 && (
@@ -137,18 +126,6 @@ const shareUrl = encodeURIComponent(pageUrl);
     max-width: 780px;
     padding: 2rem 1.5rem 5rem;
   }
-  .breadcrumbs {
-    font-size: 0.85rem;
-    color: var(--valkey-text-light);
-    margin-bottom: 1.5rem;
-  }
-  .breadcrumbs a {
-    color: var(--valkey-blue-300);
-  }
-  .breadcrumbs .sep {
-    margin: 0 0.4rem;
-    color: var(--valkey-line);
-  }
   .hero-image {
     width: 100%;
     border-radius: 10px;
@@ -169,17 +146,6 @@ const shareUrl = encodeURIComponent(pageUrl);
     font-size: 0.95rem;
     margin: 0;
   }
-  .badge {
-    display: inline-block;
-    background: var(--valkey-purple-300);
-    color: #fff;
-    font-size: 0.7rem;
-    padding: 0.15rem 0.55rem;
-    border-radius: 999px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
   .author-block {
     margin: 0.75rem 0 2rem;
     font-size: 0.95rem;
@@ -196,52 +162,9 @@ const shareUrl = encodeURIComponent(pageUrl);
     color: var(--valkey-blue-300);
     border-bottom-color: currentColor;
   }
-  .prose {
-    line-height: 1.7;
+  .blog-post .prose {
     font-size: 1.02rem;
-  }
-  .prose :global(h2) {
-    font-family: var(--valkey-cond);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    color: var(--valkey-deep-blue);
-    margin-top: 2rem;
-    font-size: 1.5rem;
-  }
-  .prose :global(h3) {
-    color: var(--valkey-text);
-    margin-top: 1.75rem;
-  }
-  .prose :global(pre) {
-    background: #1e1e2e;
-    color: #f5f5f5;
-    padding: 1rem 1.25rem;
-    border-radius: 8px;
-    overflow-x: auto;
-    font-family: var(--valkey-mono);
-    font-size: 0.85rem;
-  }
-  .prose :global(p code),
-  .prose :global(li code) {
-    background: var(--valkey-bg-soft);
-    padding: 0.1rem 0.35rem;
-    border-radius: 4px;
-    border: 1px solid var(--valkey-line);
-    font-size: 0.9em;
-    font-family: var(--valkey-mono);
-  }
-  .prose :global(img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-    margin: 1rem 0;
-  }
-  .prose :global(blockquote) {
-    border-left: 4px solid var(--valkey-blue-200);
-    padding: 0.5rem 1rem;
-    background: var(--valkey-bg-soft);
-    border-radius: 0 8px 8px 0;
-    margin: 1rem 0;
+    line-height: 1.7;
   }
   .share-links {
     margin-top: 2.5rem;
@@ -286,14 +209,5 @@ const shareUrl = encodeURIComponent(pageUrl);
     text-align: right;
     max-width: 45%;
     margin-left: auto;
-  }
-  .post-footer {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--valkey-line);
-  }
-  .back {
-    color: var(--valkey-blue-300);
-    font-weight: 600;
   }
 </style>

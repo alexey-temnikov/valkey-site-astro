@@ -1,0 +1,30 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import PageHeader from "../components/PageHeader.astro";
+import { marked } from "marked";
+
+const raw = fs.readFileSync(path.resolve("CODE_OF_CONDUCT.md"), "utf8");
+// Strip the top-level H1 — replaced by PageHeader below.
+const html = marked.parse(raw.replace(/^#\s+[^\n]+\n+/, ""), { async: false }) as string;
+---
+
+<MarketingLayout
+  title="Code of Conduct · Valkey"
+  description="The Contributor Covenant Code of Conduct that governs participation in the Valkey community."
+>
+  <PageHeader title="Code of Conduct" />
+
+  <div class="width-limiter">
+    <article class="prose narrow-prose" set:html={html} />
+  </div>
+</MarketingLayout>
+
+<style>
+  .narrow-prose {
+    padding: 2rem 1.5rem 4rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+</style>
