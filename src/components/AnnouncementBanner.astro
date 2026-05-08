@@ -12,6 +12,11 @@ const {
 } = Astro.props;
 ---
 
+{/* Banner visibility is decided by the pre-paint script in
+    MarketingLayout (and Starlight's <Banner> slot uses the same key).
+    The script sets `.banner-dismissed` on <html> *before* first paint;
+    CSS then hides the banner via that class — no JS-driven layout
+    shift after the HTML parses. */}
 <div class="announcement-banner" id="announcement-banner" data-pagefind-ignore>
   <div class="width-limiter">
     <strong>{message}</strong>
@@ -24,18 +29,10 @@ const {
 <script is:inline>
   (function () {
     const KEY = "valkey:banner:closedAt";
-    const DAY = 24 * 60 * 60 * 1000;
-    const banner = document.getElementById("announcement-banner");
-    if (!banner) return;
-    const closed = Number(localStorage.getItem(KEY) || 0);
-    if (closed && Date.now() - closed < DAY) {
-      banner.hidden = true;
-      return;
-    }
     const btn = document.getElementById("close-banner");
     btn?.addEventListener("click", () => {
-      localStorage.setItem(KEY, String(Date.now()));
-      banner.hidden = true;
+      try { localStorage.setItem(KEY, String(Date.now())); } catch {}
+      document.documentElement.classList.add("banner-dismissed");
     });
   })();
 </script>

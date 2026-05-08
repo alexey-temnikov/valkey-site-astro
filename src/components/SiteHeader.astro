@@ -75,10 +75,34 @@ const isActive = (href: string) =>
       <a href="https://github.com/valkey-io" class="github-button" target="_blank" rel="noopener" aria-label="Valkey on GitHub">
         <img src="/img/IconGithub.svg" alt="" width="16" height="16" class="gh-icon" />
         <span class="gh-text">GitHub</span>
-        <span class="gh-stars" data-github-stars hidden></span>
+        {/* Stars badge: reserves min-width via CSS so it never shifts
+            other nav items when the value arrives. The inline script
+            below fills it from cache synchronously (before paint). The
+            post-load module script refreshes the cache when expired. */}
+        <span class="gh-stars" data-github-stars>&nbsp;</span>
       </a>
     </nav>
   </div>
+
+  {/* Synchronous (is:inline, no defer) — fills the GH stars badge from
+      localStorage right after the element parses. Runs in the same
+      microtask as the parser, so the badge text is in place before the
+      browser composites the first frame: no flash, no reflow. */}
+  <script is:inline>
+    (function () {
+      try {
+        const raw = localStorage.getItem("valkey:gh:stars");
+        if (!raw) return;
+        const c = JSON.parse(raw);
+        if (!c || typeof c.v !== "number") return;
+        const v = c.v;
+        const text = (v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(v)) + " ★";
+        document.querySelectorAll("[data-github-stars]").forEach(function (el) {
+          el.textContent = text;
+        });
+      } catch (e) {}
+    })();
+  </script>
 </header>
 
 <script>
@@ -122,34 +146,29 @@ const isActive = (href: string) =>
     applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
 
-  // GitHub stars for valkey-io/valkey, cached for 1 hour
+  // GitHub stars for valkey-io/valkey, cached for 1 hour. The cached
+  // value is also painted synchronously by the pre-paint script in
+  // MarketingLayout, so on repeat visits there's no shift — this only
+  // refreshes when the cache expires.
   (async () => {
     const CACHE_KEY = "valkey:gh:stars";
     const CACHE_TTL = 60 * 60 * 1000;
-    let stars: number | null = null;
+    let cachedAt = 0;
     try {
       const raw = localStorage.getItem(CACHE_KEY);
-      if (raw) {
-        const cached = JSON.parse(raw);
-        if (cached.ts && Date.now() - cached.ts < CACHE_TTL) stars = cached.v;
-      }
+      if (raw) cachedAt = JSON.parse(raw).ts || 0;
     } catch {}
-    if (stars == null) {
-      try {
-        const r = await fetch("https://api.github.com/repos/valkey-io/valkey");
-        if (r.ok) {
-          const d = await r.json();
-          stars = d.stargazers_count;
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), v: stars }));
-        }
-      } catch {}
-    }
-    if (stars != null) {
+    if (cachedAt && Date.now() - cachedAt < CACHE_TTL) return; // pre-paint handled it
+    try {
+      const r = await fetch("https://api.github.com/repos/valkey-io/valkey");
+      if (!r.ok) return;
+      const d = await r.json();
+      const stars: number = d.stargazers_count;
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), v: stars })); } catch {}
       const formatted = stars >= 1000 ? (stars / 1000).toFixed(1) + "k" : String(stars);
       document.querySelectorAll<HTMLElement>("[data-github-stars]").forEach((el) => {
         el.textContent = `${formatted} ★`;
-        el.hidden = false;
       });
-    }
+    } catch {}
   })();
 </script>

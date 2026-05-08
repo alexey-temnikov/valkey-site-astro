@@ -354,6 +354,14 @@ starlight-menu-button + nav a[aria-current="page"],
   text-align: center;
   position: relative;
 }
+/* Hide the banner *before* first paint when the user dismissed it
+   recently. The pre-paint script in MarketingLayout adds this class to
+   <html> based on localStorage. Using `display: none` (vs the [hidden]
+   attribute that JS sets later) means there's never a frame where the
+   banner is visible. Avoids the post-load layout shift. */
+:root.banner-dismissed .announcement-banner {
+  display: none;
+}
 .announcement-banner a {
   color: #fff;
   text-decoration: underline;
@@ -396,6 +404,12 @@ starlight-menu-button + nav a[aria-current="page"],
   max-width: 1400px;
   margin: 0 auto;
   height: 100%;
+  /* Force border-box so the 1.5rem horizontal padding sits *inside* the
+     1400px max-width. Marketing pages don't have a global reset, but
+     Starlight applies `* { box-sizing: border-box }` via its reset.css
+     — explicitly setting it here gives the logo identical x-positions
+     on both layouts at every viewport width. */
+  box-sizing: border-box;
 }
 .site-header .logo img {
   height: 40px;
@@ -529,8 +543,15 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header .vk-search button[data-open-modal] svg {
   flex-shrink: 0;
 }
+/* Show the kbd shortcut from first paint. Starlight's <Search /> ships
+   `<kbd style="display: none">` and reveals it after JS init — that
+   reveal widens the search button and shifts neighboring nav items.
+   `!important` overrides the inline `display: none` so the badge is
+   visible immediately. (Starlight's swap of "Ctrl" → "⌘" on Mac post-
+   load is a tiny remaining shift but unavoidable without forking the
+   component.) Hidden below the desktop breakpoint by the @media block. */
 .site-header .vk-search button[data-open-modal] > kbd {
-  display: inline-flex;
+  display: inline-flex !important;
   align-items: center;
   gap: 0.2rem;
   background: none;
@@ -538,6 +559,11 @@ starlight-menu-button + nav a[aria-current="page"],
   padding: 0;
   font: inherit;
   margin-inline-start: auto;
+}
+@media (max-width: 50rem) {
+  .site-header .vk-search button[data-open-modal] > kbd {
+    display: none !important;
+  }
 }
 .site-header .vk-search button[data-open-modal] > kbd > kbd {
   font-family: var(--valkey-mono);
@@ -719,7 +745,10 @@ starlight-menu-button + nav a[aria-current="page"],
 
 /* -------- GitHub stars badge --------
    No margin-left: the parent .github-button is `display: inline-flex` with
-   gap: 0.5rem already, so an extra margin-left would compound the spacing. */
+   gap: 0.5rem already, so an extra margin-left would compound the spacing.
+   `min-width` reserves space for the eventual "X.Xk ★" text so the badge
+   never shifts surrounding nav items when the value arrives from cache or
+   the API on first paint. Sized for "99.9k ★" (~3.5rem of glyphs). */
 .gh-stars {
   padding: 0.1rem 0.4rem;
   background: var(--valkey-bg-soft);
@@ -730,6 +759,9 @@ starlight-menu-button + nav a[aria-current="page"],
   color: var(--valkey-text);
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: 4rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 /* -------- Hamburger for mobile -------- */
@@ -860,7 +892,7 @@ starlight-menu-button + nav a[aria-current="page"],
     font-size: clamp(0.82rem, calc(-0.243rem + 1.657vw), 0.92rem);
   }
   .site-header .vk-search button[data-open-modal] > kbd {
-    display: none;
+    display: none !important;
   }
 }
 

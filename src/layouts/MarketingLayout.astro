@@ -29,12 +29,13 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    {/* Theme bootstrap. Runs before any CSS paints to prevent a light/dark
-        flash on first load. Reads the same `starlight-theme` localStorage
-        key Starlight uses, so the marketing pages and docs pages stay in
-        sync. Falls back to OS preference. */}
+    {/* Pre-paint bootstrap. Runs synchronously in <head> before any CSS
+        is applied, so it can decide initial state for theme and the
+        announcement banner without flashing or shifting layout. */}
     <script is:inline>
       (() => {
+        const root = document.documentElement;
+        // 1. Theme — same `starlight-theme` localStorage key Starlight uses
         try {
           const stored = localStorage.getItem("starlight-theme");
           const theme = stored
@@ -42,10 +43,18 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
             : window.matchMedia("(prefers-color-scheme: dark)").matches
               ? "dark"
               : "light";
-          document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+          root.dataset.theme = theme === "dark" ? "dark" : "light";
         } catch (e) {
-          document.documentElement.dataset.theme = "light";
+          root.dataset.theme = "light";
         }
+        // 2. Announcement banner — if dismissed within the last 24h, mark
+        //    <html> so CSS can hide it before paint (no FOUC, no shift).
+        try {
+          const closedAt = Number(localStorage.getItem("valkey:banner:closedAt") || 0);
+          if (closedAt && Date.now() - closedAt < 24 * 60 * 60 * 1000) {
+            root.classList.add("banner-dismissed");
+          }
+        } catch {}
       })();
     </script>
 
@@ -72,8 +81,14 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0e1217" media="(prefers-color-scheme: dark)" />
 
-    {/* Preload the most-used webfont to avoid FOIT on the hero */}
+    {/* Preload the webfonts that render above the fold so font swap
+        doesn't cause layout shifts after first paint. Open Sans 400
+        powers body text; the Condensed 700 powers the hero headlines
+        and uppercase eyebrows that are visible on every page. */}
     <link rel="preload" href="/fonts/open-sans/opensans-latin-normal-400-v20.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/open-sans/opensans-latin-normal-600-v20.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/open-sans/opensans-latin-normal-700-v20.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/open-sans-condensed/opensanscondensed-latin-normal-700-v15.woff2" as="font" type="font/woff2" crossorigin />
 
     {/* Open Graph + Twitter */}
     <meta property="og:title" content={title} />
@@ -119,9 +134,15 @@ const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
       </noscript>
     )}
 
-    <AnnouncementBanner />
     <SiteHeader />
     <main data-pagefind-body>
+      {/* Announcement banner sits BELOW the header so the logo's
+          position matches Starlight docs pages, where the fixed header
+          is at top:0 and the banner renders inside the main content
+          area (PageFrame.astro). Without this, the banner pushes the
+          logo down by its own height (which varies with viewport),
+          breaking parity with the docs page. */}
+      <AnnouncementBanner />
       <slot />
     </main>
     <SiteFooter />
