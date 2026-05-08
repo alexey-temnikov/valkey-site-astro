@@ -1,0 +1,102 @@
+---
+// Authors index — lists every author in the collection alphabetically.
+// Mirrors templates/authors.html which just emits <ul><li><a>.
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { getCollection } from "astro:content";
+
+const authors = (await getCollection("authors")).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name),
+);
+---
+
+<MarketingLayout
+  title="Authors · Valkey"
+  description="Valkey blog authors and contributors."
+>
+  <section class="authors-index width-limiter">
+    <h1>Authors</h1>
+    <p class="lead">Contributors who have written for the Valkey blog or serve on the Technical Steering Committee.</p>
+
+    <ul class="authors-list">
+      {authors.map((author) => {
+        const { name, photo, tsc } = author.data;
+        return (
+          <li class="author-row">
+            <a href={`/authors/${author.id}/`} class="author-link">
+              {photo && <img src={photo} alt={name} class="author-thumb" />}
+              <span class="author-name">{name}</span>
+              {tsc && <span class="author-tag">TSC</span>}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</MarketingLayout>
+
+<style>
+  .authors-index {
+    padding: 3rem 1.5rem 5rem;
+    max-width: 900px;
+  }
+  .authors-index h1 {
+    font-family: var(--valkey-cond);
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    margin: 0 0 0.5rem;
+  }
+  .lead {
+    color: var(--valkey-text-light);
+    max-width: 52rem;
+    margin: 0 0 2rem;
+  }
+  .authors-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.5rem;
+  }
+  .author-row {
+    margin: 0;
+  }
+  .author-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--valkey-text);
+    text-decoration: none;
+    transition:
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .author-link:hover {
+    background: var(--valkey-bg-soft);
+    border-color: var(--valkey-line);
+    text-decoration: none;
+  }
+  .author-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .author-name {
+    font-weight: 600;
+    flex: 1;
+  }
+  .author-tag {
+    background: var(--valkey-blue-300);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+</style>

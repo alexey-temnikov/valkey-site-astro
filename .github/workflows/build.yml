@@ -1,0 +1,176 @@
+# CI workflow for valkey-site-astro.
+#
+# Goals:
+# 1. Verify `pnpm install` resolves and `pnpm build` succeeds on every
+#    push to main and every PR against main.
+# 2. Handle the `public/glide` symlink gracefully. In the local author's
+#    workspace this points at a sibling checkout of `valkey-io.github.io`
+#    which provides the pre-built GLIDE docs. On CI that path does not
+#    exist, so we detach the symlink and substitute an empty placeholder
+#    before building. Result: GLIDE pages 404 in CI builds but every other
+#    page builds cleanly.
+# 3. Commands and topics need content from the `valkey-doc` sibling repo
+#    plus the four product repos (valkey, valkey-bloom, valkey-json,
+#    valkey-search) — checked out alongside this repo at build time.
+#
+# Publishing is intentionally omitted. Wire this workflow to a deploy
+# job (GitHub Pages, Cloudflare Pages, Netlify, S3 + CloudFront, …) once
+# you pick a target.
+
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # `PROJECT_ROOT` is the workspace root; the Astro site lives inside it.
+    # We check out additional peer repos next to PROJECT_ROOT so the build's
+    # relative paths (e.g. `../valkey-doc`) resolve correctly.
+    env:
+      PROJECT_ROOT: valkey-site-astro
+
+    steps:
+      - name: Checkout valkey-site-astro
+        uses: actions/checkout@v4
+        with:
+          path: valkey-site-astro
+          # The GLIDE symlink is stored as a symlink blob. Leave as-is; we
+          # fix it up in a later step.
+
+      - name: Checkout valkey-doc (sibling, required for topics + commands)
+        uses: actions/checkout@v4
+        with:
+          repository: valkey-io/valkey-doc
+          path: valkey-doc
+          ref: main
+
+      - name: Checkout valkey (sibling, required for command JSON)
+        uses: actions/checkout@v4
+        with:
+          repository: valkey-io/valkey
+          path: valkey
+          ref: unstable
+
+      - name: Checkout valkey-bloom (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: valkey-io/valkey-bloom
+          path: valkey-bloom
+          ref: unstable
+          # Tolerate 404s on private/archived sibling repos rather than
+          # failing the whole job — the commands loader gracefully skips
+          # missing repos.
+        continue-on-error: true
+
+      - name: Checkout valkey-json (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: valkey-io/valkey-json
+          path: valkey-json
+          ref: unstable
+        continue-on-error: true
+
+      - name: Checkout valkey-search (sibling)
+        uses: actions/checkout@v4
+        with:
+          repository: valkey-io/valkey-search
+          path: valkey-search
+          ref: unstable
+        continue-on-error: true
+
+      - name: Detach broken glide symlink (CI has no sibling glide bundle)
+        # If the `public/glide` symlink target is missing (sibling
+        # valkey-io.github.io checkout is not present), remove the symlink
+        # and create an empty directory so `astro build` doesn't fail when
+        # copying public/. The resulting site will 404 on /glide/* — not a
+        # regression for CI, since we only run parity checks there.
+        run: |
+          set -eux
+          cd "$PROJECT_ROOT/public"
+          if [ -L glide ] && [ ! -e glide ]; then
+            echo "Removing dangling glide symlink"
+            rm glide
+            mkdir glide
+            echo "<!doctype html><title>GLIDE docs placeholder</title><p>GLIDE docs are not included in this build.</p>" > glide/index.html
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: ${{ env.PROJECT_ROOT }}/pnpm-lock.yaml
+
+      - name: pnpm install
+        working-directory: ${{ env.PROJECT_ROOT }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: ${{ env.PROJECT_ROOT }}
+        run: pnpm build
+
+      - name: Verify dist structure
+        # Sanity-check the build produced the expected page families. If
+        # Pagefind silently drops a section again, this catches it.
+        working-directory: ${{ env.PROJECT_ROOT }}
+        run: |
+          set -eux
+          test -f dist/index.html
+          test -f dist/commands/index.html
+          test -f dist/blog/index.html
+          test -f dist/topics/index.html
+          test -f dist/authors/index.html
+          test -f dist/leadership/index.html
+          test -f dist/events/index.html
+          test -f dist/community/index.html
+          test -f dist/try-valkey/index.html
+          test -d dist/pagefind
+          pages=$(find dist -name '*.html' | wc -l)
+          echo "Built $pages HTML files"
+          test "$pages" -gt 600
+
+      - name: Verify no leaked legacy .md links
+        # This catches regressions in the remark plugin or the commands
+        # link rewriter. External GitHub / SECURITY.md links are allowed.
+        working-directory: ${{ env.PROJECT_ROOT }}
+        run: |
+          set -eu
+          leaked=$(
+            grep -rE 'href="[^"]*\.md(#|"|\))' dist/ 2>/dev/null \
+              | grep -vE 'href="https?://' \
+              | grep -vE '/glide/' \
+              | grep -oE 'href="[^"]*\.md[^"]*"' \
+              | sort -u \
+              || true
+          )
+          if [ -n "$leaked" ]; then
+            echo "::error::Found leaked legacy .md links in dist:"
+            echo "$leaked"
+            exit 1
+          fi
+          echo "No leaked .md links."
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.sha }}
+          path: ${{ env.PROJECT_ROOT }}/dist
+          retention-days: 7

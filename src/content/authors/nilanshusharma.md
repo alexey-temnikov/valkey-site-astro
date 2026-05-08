@@ -1,17 +1,8 @@
 ---
-handle: nilanshusharma
 name: Nilanshu Sharma
-bio: 'Nilanshu is a Software Engineer at Apple where he focuses on client integrations
-  for Valkey.
-
-  He is passionate about Data Infrastructure and Distributed Systems.
-
-
-  Outside of work, he likes to spend tim'
-image: /assets/media/authors/nilanshusharma.jpg
+photo: /assets/media/authors/nilanshusharma.jpg
 github: nilanshu-sharma
 ---
-
 Nilanshu is a Software Engineer at Apple where he focuses on client integrations for Valkey.
 He is passionate about Data Infrastructure and Distributed Systems.
 

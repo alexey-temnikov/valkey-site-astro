@@ -111,31 +111,48 @@ function loadOnce(): {
   const resp3 = tryReadJson(path.join(DOC_ROOT, "resp3_replies.json")) ?? {};
 
   // Rewrite legacy Zola-style "../topics/foo.md" → "/topics/foo/" so links
-  // resolve in the new site. Also rewrite "topics/foo.md" (without ..).
-  function rewriteReply(reply: string[] | undefined): string | undefined {
-    if (!reply) return undefined;
-    return reply
-      .map((line) =>
-        line
-          .replace(/\((?:\.\.\/)?topics\/([a-z0-9._-]+)\.md(#[^)]*)?\)/gi, "(/topics/$1/$2)")
-          .replace(/\((?:\.\.\/)?commands\/([a-z0-9._-]+)\.md(#[^)]*)?\)/gi, "(/commands/$1/$2)")
-      )
-      .join("\n");
+  // resolve in the new site. Handles three forms per line:
+  //
+  //   inline:     [text](../topics/foo.md#anchor)
+  //   ref-def:    [id]: ../topics/foo.md#anchor
+  //   autolinks:  <foo.md>  (rare in replies; ignored)
+  //
+  // The regexes are careful to keep the `#anchor` suffix intact.
+  function rewriteMdLinksInLine(line: string): string {
+    return (
+      line
+        // Parenthesised link targets: `](../topics/foo.md#anchor)`
+        .replace(/\((?:\.\.\/)?topics\/([a-z0-9._-]+)\.md(#[^)]*)?\)/gi, "(/topics/$1/$2)")
+        .replace(/\((?:\.\.\/)?commands\/([a-z0-9._-]+)\.md(#[^)]*)?\)/gi, "(/commands/$1/$2)")
+        // Reference-style definitions: `[id]: ../topics/foo.md#anchor`
+        .replace(
+          /^(\s*\[[^\]]+\]:\s*)(?:\.\.\/)?topics\/([a-z0-9._-]+)\.md(#\S*)?\s*$/gi,
+          "$1/topics/$2/$3"
+        )
+        .replace(
+          /^(\s*\[[^\]]+\]:\s*)(?:\.\.\/)?commands\/([a-z0-9._-]+)\.md(#\S*)?\s*$/gi,
+          "$1/commands/$2/$3"
+        )
+        // Sibling command refs in definitions: `[id]: foo.md#anchor`
+        .replace(
+          /^(\s*\[[^\]]+\]:\s*)([a-z0-9._-]+)\.md(#\S*)?\s*$/gi,
+          "$1/commands/$2/$3"
+        )
+    );
   }
 
-  // Within a command description, links look like `[FOO](foo.md)` or
-  // `[topic](../topics/foo.md)`. Rewrite to site-relative URLs.
+  function rewriteReply(reply: string[] | undefined): string | undefined {
+    if (!reply) return undefined;
+    return reply.map(rewriteMdLinksInLine).join("\n");
+  }
+
+  // Within a command description, rewrite both inline and reference-style
+  // markdown links. Splits on line boundaries so the definition regexes can
+  // anchor on "^" per line.
   function rewriteDescription(text: string): string {
-    return text
-      .replace(
-        /\]\(\s*(?:\.\.\/)?topics\/([a-z0-9._-]+)\.md(#[^)]*)?\s*\)/gi,
-        "](/topics/$1/$2)"
-      )
-      .replace(
-        /\]\(\s*(?:\.\.\/)?commands\/([a-z0-9._-]+)\.md(#[^)]*)?\s*\)/gi,
-        "](/commands/$1/$2)"
-      )
-      // Sibling command refs like [FOO](foo.md)
+    return text.split("\n").map(rewriteMdLinksInLine).join("\n")
+      // Inline sibling command refs like [FOO](foo.md) — applied once at the
+      // whole-text level because the regex doesn't care about line anchors.
       .replace(
         /\]\(\s*([a-z0-9._-]+)\.md(#[^)]*)?\s*\)/gi,
         "](/commands/$1/$2)"

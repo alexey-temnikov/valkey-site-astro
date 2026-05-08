@@ -1,0 +1,220 @@
+---
+// Per-author page — mirrors templates/author-page.html (right-aside layout).
+// Renders the author's frontmatter (name, photo, github) and body (bio),
+// plus an aside listing all other authors for quick navigation.
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("authors");
+  const others = entries
+    .map((e) => ({ slug: e.id, name: e.data.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry, others },
+  }));
+}
+
+const { entry, others } = Astro.props;
+const { Content } = await render(entry);
+const { name, photo, github, tsc } = entry.data;
+---
+
+<MarketingLayout
+  title={`${name} · Valkey`}
+  description={`Valkey contributor: ${name}${tsc?.affiliation ? ` at ${tsc.affiliation}` : ""}.`}
+>
+  <div class="styled-title">
+    <h1>{name}</h1>
+  </div>
+
+  <div class="width-limiter author-page">
+    <main class="container right-aside">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/authors/">Authors</a> <span class="sep">›</span>
+        <span aria-current="page">{name}</span>
+      </nav>
+
+      <div class="author-container">
+        <div class="author-photo-container">
+          {photo && <img class="author-photo" src={photo} alt={`photo of ${name}`} />}
+        </div>
+        <div class="author-info">
+          <h2>{name}</h2>
+          {tsc && (
+            <p class="tsc-badge">
+              <span class="tag">Technical Steering Committee</span>
+              {tsc.position && <span class="position"> · {tsc.position}</span>}
+              {tsc.affiliation && <span class="affiliation"> · {tsc.affiliation}</span>}
+            </p>
+          )}
+          {github && (
+            <p class="github-link">
+              <a href={`https://github.com/${github}`} target="_blank" rel="noopener">
+                @{github} on GitHub
+              </a>
+            </p>
+          )}
+          <div class="bio">
+            <Content />
+          </div>
+        </div>
+      </div>
+
+      <footer class="post-footer">
+        <a href="/authors/" class="back">← All authors</a>
+      </footer>
+    </main>
+
+    <aside class="author-aside">
+      <h4>Other Authors</h4>
+      <ul>
+        {others
+          .filter((o) => o.slug !== entry.id)
+          .map((o) => (
+            <li>
+              <a href={`/authors/${o.slug}/`}>{o.name}</a>
+            </li>
+          ))}
+      </ul>
+    </aside>
+  </div>
+</MarketingLayout>
+
+<style>
+  /* Styled title banner — same purple gradient the event pages use. */
+  .styled-title {
+    background-image: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
+    color: #fff;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .styled-title h1 {
+    font-family: var(--valkey-cond);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    margin: 0;
+    color: #fff;
+  }
+
+  .author-page {
+    padding: 2rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  @media (min-width: 900px) {
+    .author-page {
+      grid-template-columns: minmax(0, 1fr) 260px;
+    }
+  }
+
+  .breadcrumbs {
+    font-size: 0.85rem;
+    color: var(--valkey-text-light);
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumbs a {
+    color: var(--valkey-blue-300);
+  }
+  .breadcrumbs .sep {
+    margin: 0 0.4rem;
+    color: var(--valkey-line);
+  }
+
+  .author-container {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 600px) {
+    .author-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .author-photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--valkey-line);
+  }
+
+  .author-info h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.6rem;
+    color: var(--valkey-text);
+  }
+
+  .tsc-badge {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    color: var(--valkey-text-light);
+  }
+  .tsc-badge .tag {
+    background: var(--valkey-blue-300);
+    color: #fff;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .github-link {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+  }
+
+  .bio {
+    line-height: 1.7;
+    font-size: 1.02rem;
+    color: var(--valkey-text);
+  }
+  .bio :global(a) {
+    color: var(--valkey-blue-300);
+  }
+
+  .post-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--valkey-line);
+  }
+  .post-footer .back {
+    color: var(--valkey-blue-300);
+    font-weight: 600;
+  }
+
+  .author-aside {
+    background: var(--valkey-bg-soft);
+    border: 1px solid var(--valkey-line);
+    border-radius: 10px;
+    padding: 1.5rem;
+    align-self: start;
+  }
+  .author-aside h4 {
+    margin: 0 0 0.75rem;
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+  }
+  .author-aside ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  .author-aside li {
+    padding: 0.25rem 0;
+  }
+  .author-aside a {
+    color: var(--valkey-blue-300);
+    font-size: 0.9rem;
+  }
+</style>

@@ -1,7 +1,6 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
 import ReleaseCard from "../../components/ReleaseCard.astro";
-import NewsletterSection from "../../components/NewsletterSection.astro";
 import { parseReleases, latestPerMajor } from "../../lib/releases";
 
 const modules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
@@ -40,8 +39,6 @@ const [newest, ...pastMajors] = latest;
       </>
     )}
   </section>
-
-  <NewsletterSection />
 </MarketingLayout>
 
 <style>

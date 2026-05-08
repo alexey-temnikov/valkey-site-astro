@@ -1,60 +1,216 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
-  const pages = import.meta.glob("/src/content/events/*.md", { eager: true });
-  return Object.entries(pages).map(([path, mod]: [string, any]) => {
-    const slug = path.split("/").pop()!.replace(".md", "");
-    return { params: { slug }, props: { frontmatter: mod.frontmatter, Content: mod.default } };
-  });
+  const entries = await getCollection("events");
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
 }
 
-const { frontmatter, Content } = Astro.props;
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+// `external_url` events redirect to a third-party site — render a minimal meta-refresh
+// page and no body content. Mirrors templates/event-page.html:3-6 in the Zola reference.
+const externalUrl = entry.data.external_url as string | undefined;
+
+// Convert the optional footer_add markdown snippet to HTML. Reference stores short
+// one-line credits like "Header image: [Horsehead Nebula](https://...). License: [CC BY 4.0](https://...)",
+// so a tiny inline converter is sufficient — no block-level elements needed.
+function renderInlineMarkdown(src: string | undefined): string {
+  if (!src) return "";
+  const escaped = src
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  // [text](url) → <a>
+  return escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, url) => {
+    const safeUrl = url.replace(/"/g, "&quot;");
+    return `<a href="${safeUrl}" target="_blank" rel="noopener">${text}</a>`;
+  });
+}
+const footerAddHtml = renderInlineMarkdown(entry.data.footer_add);
 ---
 
-<MarketingLayout
-  title={`${frontmatter.title} · Valkey Events`}
-  description={frontmatter.title}
-  bodyClass={frontmatter.body_class ?? ""}
->
-  <section class="event-page width-limiter">
-    <nav class="breadcrumbs" aria-label="Breadcrumb">
-      <a href="/events/">Events</a> <span class="sep">›</span>
-      <span aria-current="page">{frontmatter.title}</span>
-    </nav>
-
-    <header class="event-header">
-      {frontmatter.event_logo ? (
-        <img src={frontmatter.event_logo} alt={frontmatter.title} class="event-logo" />
-      ) : (
-        <h1>{frontmatter.title}</h1>
-      )}
-    </header>
-
-    <div class="prose">
-      <Content />
+{externalUrl ? (
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta http-equiv="refresh" content={`0; url=${externalUrl}`} />
+      <title>{`Valkey · ${entry.data.title}`}</title>
+      <link rel="canonical" href={externalUrl} />
+      <meta name="robots" content="noindex" />
+    </head>
+    <body>
+      <p>
+        Redirecting to <a href={externalUrl}>{externalUrl}</a>…
+      </p>
+    </body>
+  </html>
+) : (
+  <MarketingLayout
+    title={`Valkey · ${entry.data.title}`}
+    description={entry.data.title}
+    bodyClass={entry.data.body_class ?? ""}
+  >
+    <div class="styled-title event-title">
+      <h1>
+        {entry.data.event_logo ? (
+          <img src={entry.data.event_logo} alt={entry.data.title} />
+        ) : (
+          entry.data.title
+        )}
+      </h1>
     </div>
 
-    <footer class="post-footer">
-      <a href="/events/" class="back">← Back to events</a>
-    </footer>
-  </section>
-</MarketingLayout>
+    <div class="event-single">
+      <main>
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+          <a href="/events/">Events</a> <span class="sep">›</span>
+          <span aria-current="page">{entry.data.title}</span>
+        </nav>
 
-<style>
-  .event-page { max-width: 780px; padding: 2rem 1.5rem 5rem; }
-  .breadcrumbs { font-size: 0.85rem; color: var(--valkey-text-light); margin-bottom: 1.5rem; }
-  .breadcrumbs a { color: var(--valkey-blue-300); }
-  .breadcrumbs .sep { margin: 0 0.4rem; color: var(--valkey-line); }
-  .event-header { margin-bottom: 2rem; }
-  .event-logo { max-width: 400px; height: auto; }
-  .event-header h1 { font-family: var(--valkey-cond); font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; margin: 0; }
-  .prose { line-height: 1.7; font-size: 1.02rem; }
-  .prose :global(h2) { font-family: var(--valkey-cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--valkey-deep-blue); margin-top: 2rem; font-size: 1.5rem; }
-  .prose :global(h3) { color: var(--valkey-text); margin-top: 1.75rem; }
-  .prose :global(iframe) { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
-  .prose :global(ul) { padding-left: 1.5rem; }
-  .prose :global(a) { color: var(--valkey-blue-300); }
-  .post-footer { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--valkey-line); }
-  .back { color: var(--valkey-blue-300); font-weight: 600; }
+        <div class="prose">
+          <Content />
+        </div>
+
+        {footerAddHtml && (
+          <p class="footer-add" set:html={footerAddHtml} />
+        )}
+
+        <footer class="post-footer">
+          <a href="/events/" class="back">← Back to events</a>
+        </footer>
+      </main>
+    </div>
+  </MarketingLayout>
+)}
+
+<style is:global>
+  /* Event page — ported from valkey-io.github.io/sass/_valkey.scss
+       .styled-title (global):                           2870-2893
+       .styled-title.event-title img:                    1052-1055
+       .event-single + .event-single main:               1056-1066
+       .keyspace-2025 body-class override (nebula bg):   1072-1097
+     Image path updated for Astro: /events/keyspace-2025/... is served from
+     public/events/keyspace-2025/... (parity with reference).
+  */
+  .styled-title {
+    background-image: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
+    color: #ffffff;
+    text-align: center;
+    padding: 80px 20px;
+  }
+  .styled-title h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #ffffff;
+    margin: 0 auto;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+  .styled-title.event-title img {
+    width: 33%;
+    max-width: 500px;
+    height: auto;
+  }
+
+  .event-single {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .event-single main {
+    flex: 1;
+    padding: 2rem;
+    width: 100%;
+  }
+  .event-single .breadcrumbs {
+    font-size: 0.85rem;
+    color: var(--valkey-text-light);
+    margin-bottom: 1.5rem;
+  }
+  .event-single .breadcrumbs a { color: var(--valkey-blue-300); }
+  .event-single .breadcrumbs .sep { margin: 0 0.4rem; color: var(--valkey-line); }
+
+  .event-single .prose { line-height: 1.7; font-size: 1.02rem; }
+  .event-single .prose h2 {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+    margin-top: 2rem;
+    font-size: 1.5rem;
+  }
+  .event-single .prose h3 { color: var(--valkey-text); margin-top: 1.75rem; }
+  .event-single .prose iframe { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
+  .event-single .prose ul { padding-left: 1.5rem; }
+  .event-single .prose a { color: var(--valkey-blue-300); }
+
+  .event-single .footer-add {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px dotted rgba(0, 0, 0, 0.15);
+    font-size: 0.85rem;
+    color: var(--valkey-text-light);
+  }
+  .event-single .footer-add a { color: var(--valkey-blue-300); }
+
+  .event-single .post-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--valkey-line);
+  }
+  .event-single .post-footer .back { color: var(--valkey-blue-300); font-weight: 600; }
+
+  /* body_class = "keyspace-2025" — nebula hero background + dark theme.
+     Image path uses /events/keyspace-2025/... to match the reference URL. */
+  body.keyspace-2025 .styled-title {
+    background-image: url("/events/keyspace-2025/keyspace-nebula-new.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+  body.keyspace-2025 {
+    background-color: #000;
+  }
+  body.keyspace-2025 .event-single main {
+    color: #fff;
+  }
+  body.keyspace-2025 .event-single .prose a,
+  body.keyspace-2025 .event-single .breadcrumbs a,
+  body.keyspace-2025 .event-single .post-footer .back,
+  body.keyspace-2025 .event-single .footer-add a {
+    color: #8fd0ff;
+  }
+  body.keyspace-2025 .event-single .breadcrumbs .sep {
+    color: rgba(255, 255, 255, 0.35);
+  }
+  body.keyspace-2025 .event-single .prose h2,
+  body.keyspace-2025 .event-single .prose h3 {
+    color: #fff;
+  }
+  body.keyspace-2025 .event-single th {
+    background-color: inherit;
+  }
+  body.keyspace-2025 .event-single tr:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  body.keyspace-2025 .event-single td {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+  body.keyspace-2025 .event-single .post-footer {
+    border-top-color: rgba(255, 255, 255, 0.2);
+  }
+  body.keyspace-2025 .event-single .footer-add {
+    border-top-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.7);
+  }
 </style>

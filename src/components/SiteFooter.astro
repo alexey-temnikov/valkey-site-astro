@@ -1,7 +1,11 @@
 ---
 // Footer ported verbatim from valkey.io (Zola reference).
-// Source: valkey-io.github.io/templates/default.html + templates/includes/email-list.html
-// Do not simplify or paraphrase — match the reference 1-1.
+// HTML source: valkey-io.github.io/templates/default.html:129-185 +
+//              valkey-io.github.io/templates/includes/email-list.html:1-17
+// CSS  source: valkey-io.github.io/sass/_valkey.scss:391-478, _email-form.scss
+// Reference renders with html { font-size: 10px } → 1rem = 10px.
+// We port rem values as pixel equivalents so rendering matches without
+// requiring a global html font-size reset.
 const isProd = import.meta.env.PROD;
 ---
 
@@ -106,169 +110,184 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 
 <style is:global>
-  /* Footer styles — ported from valkey.io stylesheet */
+  /* ====================================================================
+     Footer — ported from valkey-io.github.io/sass/_valkey.scss:391-478
+     ==================================================================== */
   .footer {
-    background: var(--valkey-deep-blue, #0b1628);
-    color: #b3c2cb;
-    padding: 2rem 1.5rem;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    background-color: #1a2026;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-size: 14px;
+    color: #fff;
+    padding: 20px 0;
+  }
+  .footer + .footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  /* Row layout */
-  .footer > .row {
-    max-width: 1200px;
-    margin: 0 auto;
+  .footer .icon-links {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 15px;
+  }
+  .footer .icon-links a {
+    display: flex;
     align-items: center;
-    gap: 1.5rem;
+    color: #fff;
+    text-decoration: none;
+  }
+  .footer .icon-links a:hover {
+    color: #fff;
+    text-decoration: underline;
+    opacity: 0.8;
+  }
+  .footer .icon-links a img {
+    margin-right: 5px;
+  }
+  @media screen and (min-width: 768px) {
+    .footer .icon-links {
+      flex-direction: row;
+      border: none;
+    }
   }
 
-  .footer .col {
-    flex: 1 1 auto;
-  }
-  .footer .col-4 { flex-basis: 33%; }
-  .footer .col-6 { flex-basis: calc(50% - 1rem); }
-  .footer .col-8 { flex-basis: 66%; }
-
-  /* Row 1: socials + text links */
-  .footer .icon-links,
   .footer .links {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1.25rem;
+    flex-direction: column;
+    gap: 15px;
+    justify-content: flex-end;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 20px;
+    padding-top: 20px;
   }
-  .footer .links { justify-content: flex-end; }
-  .footer .icon-links a,
   .footer .links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: #b3c2cb;
-    font-size: 0.9rem;
-    text-decoration: none;
-  }
-  .footer .icon-links a:hover,
-  .footer .links a:hover {
     color: #fff;
-    text-decoration: none;
+    text-decoration: underline;
   }
-  .footer .icon-links img {
-    filter: brightness(0) invert(1);
+  .footer .links a:hover {
+    opacity: 0.8;
+  }
+  @media screen and (min-width: 768px) {
+    .footer .links {
+      flex-direction: row;
+      border: none;
+      margin-top: 0;
+      padding-top: 0;
+    }
   }
 
-  /* Row 2: email list (HubSpot) */
-  .footer-email-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
+  .footer_bottom {
     width: 100%;
+    margin-top: 20px;
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
+  }
+  .footer_bottom p {
+    max-width: 720px;
+    margin: 8px auto;
+  }
+  .footer_bottom a {
+    color: #6983ff;
+    text-decoration: none;
+  }
+  .footer_bottom a:hover {
+    text-decoration: underline;
+  }
+
+  /* ====================================================================
+     Grid — ported from _valkey.scss:738-788
+     ==================================================================== */
+  .footer .row,
+  .footer .row .col {
+    box-sizing: border-box;
+  }
+  .footer .row {
+    display: flex;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    width: 100%;
+    max-width: 1400px;
+  }
+  .footer .row .col {
+    flex: 1 1 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  @media screen and (min-width: 768px) {
+    .footer .row .col-8 { flex: 1 1 66.66%; }
+    .footer .row .col-6 { flex: 1 1 50%;    }
+    .footer .row .col-4 { flex: 1 1 33.33%; }
+  }
+
+  /* ====================================================================
+     HubSpot newsletter — ported verbatim from _email-form.scss
+     ==================================================================== */
+  .footer-email-list {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: left;
   }
   .footer-email-list h2 {
-    font-size: 1.5rem;
-    margin: 0 0 1rem;
-    color: #fff;
-    line-height: 1.25;
+    margin-top: 0;
   }
-  .footer-email-list p {
-    color: #b3c2cb;
-    font-size: 0.95rem;
-    margin: 0 0 0.75rem;
+  .footer-form div.field {
+    text-align: left;
   }
-  .footer-form {
-    color: #e7eef3;
+  .footer-form .legal-consent-container,
+  .footer-form .hs-richtext {
+    text-align: left;
   }
-  .footer-form .hs-form-field {
-    margin-bottom: 0.85rem;
+  .footer-form .legal-consent-container p,
+  .footer-form .hs-richtext p {
+    max-width: none;
+    margin: auto;
   }
-  .footer-form label {
-    display: block;
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
-    color: #b3c2cb;
+  .footer-form input[type="submit"] {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 0.5em 2em;
+    cursor: pointer;
   }
-  .footer-form .hs-form-required {
-    color: #ff5a6b;
-    margin-left: 0.15rem;
+  .footer-form .actions {
+    text-align: left;
+  }
+  .footer-form .hs_submit {
+    padding-top: 1em;
+    height: 100px; /* this is due to the floating captcha badge */
+  }
+  .footer-form .hs_recaptcha {
+    float: right;
+    opacity: 0.5;
+    min-height: 60px;
+  }
+  .footer-form .hs-error-msgs {
+    list-style-type: none;
+    color: red;
+    padding-left: 0;
+    margin-top: 0;
   }
   .footer-form input[type="text"],
   .footer-form input[type="email"],
   .footer-form select {
-    width: 100%;
-    padding: 0.55rem 0.75rem;
-    background: transparent;
-    color: #fff;
+    background: none;
     border: none;
-    border-bottom: 1px solid rgba(255,255,255,0.3);
-    font-size: 0.95rem;
-    outline: none;
+    border-bottom: 1px solid white;
+    color: white;
+    width: 100%;
+    margin-bottom: 0.75em;
   }
-  .footer-form input:focus,
-  .footer-form select:focus {
-    border-bottom-color: #fff;
+  .footer-form input[type="text"]::placeholder,
+  .footer-form input[type="email"]::placeholder,
+  .footer-form select::placeholder {
+    opacity: 1;
+    color: white;
   }
+  .footer-form select {
+    color: white;
+  }
+  /* Select options need dark text on white OS menu */
   .footer-form select option {
     color: #000;
-  }
-  .footer-form .hs-submit .hs-button {
-    background: transparent;
-    color: #fff;
-    border: 1px solid #fff;
-    padding: 0.55rem 1.5rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 2px;
-  }
-  .footer-form .hs-submit .hs-button:hover {
-    background: #fff;
-    color: var(--valkey-deep-blue, #0b1628);
-  }
-  .footer-form .legal-consent-container,
-  .footer-form .hs-richtext {
-    font-size: 0.8rem;
-    color: #b3c2cb;
-    margin: 0.75rem 0;
-    line-height: 1.4;
-  }
-  .footer-form .legal-consent-container a {
-    color: #5ea5f5;
-  }
-  .footer-form .hs-error-msgs {
-    list-style: none;
-    padding: 0;
-    margin: 0.25rem 0 0;
-    color: #ff5a6b;
-    font-size: 0.75rem;
-  }
-
-  /* Row 3: legal */
-  .footer_bottom {
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
-    padding: 0.75rem 0;
-  }
-  .footer_bottom p {
-    margin: 0.5rem 0;
-    font-size: 0.85rem;
-    color: #8d9aa4;
-    line-height: 1.55;
-  }
-  .footer_bottom a {
-    color: #8d9aa4;
-    text-decoration: underline;
-  }
-  .footer_bottom a:hover {
-    color: #fff;
-  }
-
-  /* Responsive */
-  @media (max-width: 860px) {
-    .footer > .row { flex-direction: column; align-items: stretch; }
-    .footer .col-6, .footer .col-4, .footer .col-8 { flex-basis: 100%; }
-    .footer .icon-links, .footer .links { justify-content: center; }
   }
 </style>

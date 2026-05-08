@@ -1,6 +1,5 @@
 ---
 import MarketingLayout from "../../../layouts/MarketingLayout.astro";
-import NewsletterSection from "../../../components/NewsletterSection.astro";
 import {
   parseReleases,
   sortDesc,
@@ -55,8 +54,6 @@ const groups = [...groupsMap.entries()].sort(([a], [b]) => {
       </div>
     ))}
   </section>
-
-  <NewsletterSection />
 </MarketingLayout>
 
 <style>

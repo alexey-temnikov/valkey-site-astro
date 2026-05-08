@@ -2,67 +2,350 @@
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
 import { getCollection } from "astro:content";
 
+// Fetch events and sort descending by date. The `date` field has already been
+// normalized to a local-noon Date by the zod transform in content.config.ts,
+// so no further TZ conversion is needed here.
 const entries = await getCollection("events");
+
+// Serializable shape for the inline <script> — Date objects round-trip as
+// strings through define:vars, so we pre-format YYYY-MM-DD here.
 const events = entries
   .map((p) => {
-    const slug = p.id;
-    return { slug, ...(p.data as any) };
+    const d = p.data.date as Date;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const isoDate = `${y}-${m}-${day}`;
+    return {
+      slug: p.id,
+      title: p.data.title as string,
+      date: isoDate,
+      type: (p.data.event_type as string) || "first-party",
+      location: (p.data.location as string) || "",
+      locationUrl: (p.data.location_url as string) || "",
+      url: (p.data.external_url as string) || `/events/${p.id}/`,
+    };
   })
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-}
+  .sort((a, b) => b.date.localeCompare(a.date));
 ---
 
-<MarketingLayout title="Events · Valkey" description="Valkey community events and conferences">
-  <section class="events-page width-limiter">
-    <h1>Events</h1>
-    <p class="lead">Conferences, meetups, and community gatherings for the Valkey ecosystem.</p>
+<MarketingLayout title="Valkey · Events" description="Valkey community events and conferences">
+  <div class="page-subhead">
+    <h1 class="page-title">Events</h1>
+  </div>
 
+  <div class="events-calendar">
     <div class="events-legend">
       <span class="legend-item"><span class="legend-dot first-party"></span> Valkey Events</span>
       <span class="legend-item"><span class="legend-dot third-party"></span> Third Party</span>
     </div>
 
-    <div class="events-list">
-      {events.map((ev) => (
-        <article class={`event-card ${ev.event_type ?? "first-party"}`}>
-          <span class={`event-badge ${ev.event_type ?? "first-party"}`}>
-            {ev.event_type === "third-party" ? "Third Party" : "Valkey Event"}
-          </span>
-          <h2><a href={`/events/${ev.slug}/`}>{ev.title}</a></h2>
-          <p class="meta">{formatDate(ev.date)}</p>
-          {ev.location && (
-            <p class="location">
-              <a href={ev.location_url} target="_blank" rel="noopener">{ev.location}</a>
-            </p>
-          )}
-        </article>
-      ))}
+    <div class="calendar-nav">
+      <button class="calendar-nav-btn" id="cal-prev" aria-label="Previous month">&#9664;</button>
+      <span class="calendar-nav-title" id="cal-title"></span>
+      <button class="calendar-nav-btn" id="cal-next" aria-label="Next month">&#9654;</button>
     </div>
-  </section>
+
+    <div class="calendar-grid" id="cal-grid">
+      <div class="calendar-header">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+      <div class="calendar-days" id="cal-days"></div>
+    </div>
+
+    <div class="events-list" id="events-list"></div>
+  </div>
+
+  <script is:inline define:vars={{ events }}>
+    document.addEventListener("DOMContentLoaded", function () {
+      if (!events || events.length === 0) return;
+
+      // Collect events by month ("YYYY-MM" → [event]).
+      var monthSet = {};
+      events.forEach(function (e) {
+        var key = e.date.substring(0, 7);
+        if (!monthSet[key]) monthSet[key] = [];
+        monthSet[key].push(e);
+      });
+
+      // Build the full range of months from the earliest to the latest event
+      // so the prev/next buttons step across a contiguous timeline.
+      var eventDates = events.map(function (e) { return e.date; }).sort();
+      var first = eventDates[0].split("-");
+      var last = eventDates[eventDates.length - 1].split("-");
+      var months = [];
+      var y = Number(first[0]), m = Number(first[1]);
+      var endY = Number(last[0]), endM = Number(last[1]);
+      while (y < endY || (y === endY && m <= endM)) {
+        months.push(y + "-" + (m < 10 ? "0" + m : m));
+        m++;
+        if (m > 12) { m = 1; y++; }
+      }
+      var currentIdx = 0;
+
+      // Start on the current month if it falls inside the range.
+      var now = new Date();
+      var currentKey = now.getFullYear() + "-" + (now.getMonth() + 1 < 10 ? "0" + (now.getMonth() + 1) : "" + (now.getMonth() + 1));
+      var foundIdx = months.indexOf(currentKey);
+      if (foundIdx !== -1) currentIdx = foundIdx;
+
+      var monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+      ];
+
+      function daysInMonth(yr, mo) { return new Date(yr, mo + 1, 0).getDate(); }
+      // Convert JS Sun=0..Sat=6 to Mon=0..Sun=6 so the grid starts on Monday.
+      function startDay(yr, mo) { var d = new Date(yr, mo, 1).getDay(); return d === 0 ? 6 : d - 1; }
+
+      function render() {
+        var key = months[currentIdx];
+        var parts = key.split("-");
+        var year = Number(parts[0]);
+        var month = Number(parts[1]) - 1;
+        var total = daysInMonth(year, month);
+        var start = startDay(year, month);
+        var evts = monthSet[key] || [];
+
+        var byDay = {};
+        evts.forEach(function (e) {
+          var d = Number(e.date.substring(8, 10));
+          if (!byDay[d]) byDay[d] = [];
+          byDay[d].push(e);
+        });
+
+        document.getElementById("cal-title").textContent = monthNames[month] + " " + year;
+
+        var html = "";
+        for (var i = 0; i < start; i++) html += '<div class="calendar-day empty"></div>';
+        for (var d = 1; d <= total; d++) {
+          var hasEvents = byDay[d];
+          if (hasEvents) {
+            var labels = "";
+            hasEvents.forEach(function (e) {
+              labels += '<a href="' + e.url + '" class="event-label ' + e.type + '">' + e.title + "</a>";
+            });
+            html += '<div class="calendar-day has-event"><span class="day-num">' + d + "</span>" + labels + "</div>";
+          } else {
+            html += '<div class="calendar-day"><span class="day-num">' + d + '</span></div>';
+          }
+        }
+        document.getElementById("cal-days").innerHTML = html;
+
+        // Highlight the current month's event cards in the list below.
+        var allCards = document.querySelectorAll(".event-card");
+        var firstMatch = null;
+        allCards.forEach(function (card) {
+          var cardMonth = card.getAttribute("data-month");
+          if (cardMonth === key) {
+            card.classList.add("active");
+            if (!firstMatch) firstMatch = card;
+          } else {
+            card.classList.remove("active");
+          }
+        });
+        if (firstMatch) firstMatch.scrollIntoView({ behavior: "smooth", block: "nearest" });
+
+        document.getElementById("cal-prev").disabled = currentIdx === 0;
+        document.getElementById("cal-next").disabled = currentIdx === months.length - 1;
+      }
+
+      // Render all event cards (sorted descending by date).
+      var allEvents = events.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+      var listHtml = "";
+      allEvents.forEach(function (e) {
+        // Parse as local noon to avoid TZ off-by-one (mirrors content.config.ts).
+        var parts = e.date.split("-");
+        var dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+        var dateStr = monthNames[dateObj.getMonth()] + " " + dateObj.getDate() + ", " + dateObj.getFullYear();
+        var eventMonth = e.date.substring(0, 7);
+        var today = new Date().toISOString().substring(0, 10);
+        listHtml +=
+          '<div class="event-card' + (e.date < today ? " past" : "") + '" data-month="' + eventMonth + '">' +
+          '<span class="event-card-badge ' + e.type + '">' + (e.type === "first-party" ? "Valkey Event" : "Third Party") + "</span>" +
+          '<h3><a href="' + e.url + '">' + e.title + "</a></h3>" +
+          '<p class="event-card-date">' + dateStr + "</p>" +
+          (e.location ? '<p class="event-card-location"><a href="' + e.locationUrl + '" target="_blank" rel="noopener">' + e.location + "</a></p>" : "") +
+          "</div>";
+      });
+      document.getElementById("events-list").innerHTML = listHtml;
+
+      document.getElementById("cal-prev").addEventListener("click", function () { if (currentIdx > 0) { currentIdx--; render(); } });
+      document.getElementById("cal-next").addEventListener("click", function () { if (currentIdx < months.length - 1) { currentIdx++; render(); } });
+
+      render();
+    });
+  </script>
 </MarketingLayout>
 
-<style>
-  .events-page { padding: 3rem 1.5rem 5rem; }
-  .events-page h1 { font-family: var(--valkey-cond); font-size: clamp(2.25rem, 4vw, 3.5rem); margin: 0 0 0.5rem; }
-  .lead { color: var(--valkey-text-light); font-size: 1.05rem; margin: 0 0 2rem; }
-  .events-legend { display: flex; gap: 1.5rem; margin-bottom: 2rem; }
-  .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--valkey-text-light); }
-  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
-  .legend-dot.first-party { background: var(--valkey-blue-300); }
-  .legend-dot.third-party { background: var(--valkey-purple-300); }
-  .events-list { display: grid; gap: 1.5rem; }
-  .event-card { border: 1px solid var(--valkey-line); border-radius: 10px; padding: 1.5rem; background: #fff; transition: box-shadow 0.15s ease, border-color 0.15s ease; }
-  .event-card:hover { border-color: var(--valkey-blue-100); box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08); }
-  .event-badge { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.55rem; border-radius: 999px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #fff; }
-  .event-badge.first-party { background: var(--valkey-blue-300); }
-  .event-badge.third-party { background: var(--valkey-purple-300); }
-  .event-card h2 { margin: 0.5rem 0 0.5rem; font-size: 1.3rem; }
-  .event-card h2 a { color: var(--valkey-text); }
-  .event-card h2 a:hover { color: var(--valkey-blue-300); text-decoration: none; }
-  .meta { color: var(--valkey-text-light); font-size: 0.9rem; margin: 0 0 0.25rem; }
-  .location { font-size: 0.9rem; }
-  .location a { color: var(--valkey-blue-300); }
+<style is:global>
+  /* Events calendar + list — ported from valkey-io.github.io/sass/_valkey.scss:2525-2710.
+     SCSS variables resolved inline:
+       $yellow-100: #CC9316      $blue-dk-300: #003b5c       $blue-vibrant-300: #00a3e0
+       $white: #FFFFFF           $background-darker: #f5f7f7  $line: #ccd3d6
+       $line-lighter: #f6f8f8    $highlight-lightest: #f4f8fb $text: #002a3a
+       $text-light: #647782      $link-color (≈ $blue-300): #0055a6
+  */
+  .events-calendar {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 20px;
+  }
+
+  .events-legend {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    font-size: 1.4rem;
+  }
+  .events-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .events-legend .legend-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .events-legend .legend-dot.first-party { background-color: #6983ff; }
+  .events-legend .legend-dot.third-party { background-color: #CC9316; }
+
+  .calendar-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .calendar-nav .calendar-nav-title {
+    font-size: 2.2rem;
+    font-weight: 600;
+    min-width: 220px;
+    text-align: center;
+    color: #002a3a;
+  }
+  .calendar-nav .calendar-nav-btn {
+    background: none;
+    border: 1px solid #ccd3d6;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1.6rem;
+    color: #002a3a;
+  }
+  .calendar-nav .calendar-nav-btn:hover:not(:disabled) { background-color: #f5f7f7; }
+  .calendar-nav .calendar-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .calendar-grid {
+    border: 1px solid #ccd3d6;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background-color: #003b5c;
+    color: #ffffff;
+    font-size: 1.3rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  .calendar-header span { padding: 0.8rem 0; }
+
+  .calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .calendar-day {
+    min-height: 60px;
+    padding: 0.4rem;
+    border: 1px solid #f6f8f8;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    font-size: 1.3rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .calendar-day.empty { background-color: #f5f7f7; }
+  .calendar-day.has-event { background-color: #f4f8fb; }
+  .calendar-day .day-num {
+    color: #647782;
+    margin-bottom: 0.3rem;
+  }
+
+  .event-label {
+    display: block;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.2;
+    color: #ffffff;
+    text-decoration: none;
+    word-break: break-word;
+    margin-top: 2px;
+  }
+  .event-label.first-party { background-color: #6983ff; }
+  .event-label.third-party { background-color: #CC9316; }
+  .event-label:hover { opacity: 0.85; }
+  .event-label, .event-label:visited { color: #ffffff; }
+
+  .events-list {
+    display: grid;
+    gap: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+  .events-list .event-card {
+    display: block;
+    padding: 1.5rem;
+    border: 1px solid #ccd3d6;
+    border-radius: 8px;
+    transition: box-shadow 0.2s;
+  }
+  .events-list .event-card:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+  .events-list .event-card.active { border-color: #00a3e0; box-shadow: 0 0 0 2px #00a3e0; }
+  .events-list .event-card.past { opacity: 0.5; }
+
+  .events-list .event-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1.8rem;
+  }
+  .events-list .event-card h3 a { color: #002a3a; text-decoration: none; }
+  .events-list .event-card h3 a:hover { color: #0055a6; }
+
+  .events-list .event-card-badge {
+    display: inline-block;
+    padding: 0.2rem 0.8rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .events-list .event-card-badge.first-party { background-color: #6983ff; }
+  .events-list .event-card-badge.third-party { background-color: #CC9316; }
+
+  .events-list .event-card-date {
+    font-size: 1.4rem;
+    color: #647782;
+    margin: 0.3rem 0;
+  }
+  .events-list .event-card-location {
+    font-size: 1.4rem;
+    margin: 0.3rem 0;
+  }
+  .events-list .event-card-location a { color: #0055a6; }
+
+  @media (max-width: 600px) {
+    .calendar-header span { font-size: 1.1rem; }
+    .calendar-day { min-height: 40px; font-size: 1.1rem; }
+    .calendar-nav .calendar-nav-title { font-size: 1.8rem; min-width: auto; }
+  }
 </style>

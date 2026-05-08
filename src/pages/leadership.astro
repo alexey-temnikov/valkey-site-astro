@@ -1,0 +1,191 @@
+---
+// Leadership page — ports templates/leadership.html from the Zola reference.
+//
+// Mirrors the Zola logic:
+//   {% set authors = get_section(path="authors/_index.md") %}
+//   {% for author in authors.pages if author.extra.tsc %}
+//     render TSC card
+// The card shows the author photo, display name, optional `position`, and
+// `affiliation`. Links to /authors/<slug>/ (internal) and the author's
+// GitHub profile (external).
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import { getCollection } from "astro:content";
+
+const allAuthors = await getCollection("authors");
+const tscMembers = allAuthors
+  .filter((a) => a.data.tsc)
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+// Surface the Committee Chair first so the roster reads the same as the
+// reference site's visual hierarchy (chair is typically listed first by
+// virtue of alphabetical M < everyone else below, but if a new chair
+// ever breaks that ordering, this keeps the intent explicit).
+tscMembers.sort((a, b) => {
+  const pa = a.data.tsc?.position ?? "";
+  const pb = b.data.tsc?.position ?? "";
+  if (/chair/i.test(pa) && !/chair/i.test(pb)) return -1;
+  if (!/chair/i.test(pa) && /chair/i.test(pb)) return 1;
+  return a.data.name.localeCompare(b.data.name);
+});
+---
+
+<MarketingLayout
+  title="Leadership · Valkey"
+  description="The Valkey project is managed by a Technical Steering Committee (TSC) composed of the maintainers of the Valkey repository."
+>
+  <section class="leadership-section width-limiter">
+    <div class="leadership-header">
+      <h1>Leadership</h1>
+      <p>
+        The Valkey project is managed by a Technical Steering Committee (TSC)
+        composed of the maintainers of the Valkey repository. You can find
+        more information about the current Valkey maintainers in
+        <a href="https://github.com/valkey-io/valkey/blob/unstable/MAINTAINERS.md"
+          ><code>MAINTAINERS.md</code> on GitHub</a
+        >.
+      </p>
+    </div>
+
+    <h2>Project Technical Steering Committee</h2>
+
+    <div class="leadership-card-grid">
+      {tscMembers.map((author) => {
+        const { name, photo, github, tsc } = author.data;
+        const slug = author.id;
+        return (
+          <div class="leadership-card">
+            {photo && (
+              <img src={photo} alt={name} class="leadership-card-photo" />
+            )}
+            <h3>{name}</h3>
+            {tsc?.position && <h4>{tsc.position}</h4>}
+            {tsc?.affiliation && <p>{tsc.affiliation}</p>}
+            <div class="leadership-card-actions">
+              <a href={`/authors/${slug}/`} class="btn" aria-label={`View bio for ${name}`}>
+                {/* user icon */}
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true">
+                  <path d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z" />
+                </svg>
+              </a>
+              {github && (
+                <a
+                  href={`https://github.com/${github}`}
+                  class="btn"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label={`${name} on GitHub`}
+                >
+                  {/* github icon */}
+                  <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" aria-hidden="true">
+                    <path d="M316.8 72C178.1 72 72 177.3 72 316C72 426.9 141.8 521.8 241.5 555.2C254.3 557.5 258.8 549.6 258.8 543.1C258.8 536.9 258.5 502.7 258.5 481.7C258.5 481.7 188.5 496.7 173.8 451.9C173.8 451.9 162.4 422.8 146 415.3C146 415.3 123.1 399.6 147.6 399.9C147.6 399.9 172.5 401.9 186.2 425.7C208.1 464.3 244.8 453.2 259.1 446.6C261.4 430.6 267.9 419.5 275.1 412.9C219.2 406.7 162.8 398.6 162.8 302.4C162.8 274.9 170.4 261.1 186.4 243.5C183.8 237 175.3 210.2 189 175.6C209.9 169.1 258 202.6 258 202.6C278 197 299.5 194.1 320.8 194.1C342.1 194.1 363.6 197 383.6 202.6C383.6 202.6 431.7 169 452.6 175.6C466.3 210.3 457.8 237 455.2 243.5C471.2 261.2 481 275 481 302.4C481 398.9 422.1 406.6 366.2 412.9C375.4 420.8 383.2 435.8 383.2 459.3C383.2 493 382.9 534.7 382.9 542.9C382.9 549.4 387.5 557.3 400.2 555C500.2 521.8 568 426.9 568 316C568 177.3 455.5 72 316.8 72z" />
+                  </svg>
+                </a>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+</MarketingLayout>
+
+<style>
+  /* Leadership section — inlined from valkey-io.github.io/sass/_valkey.scss (leadership-card-grid block). */
+  .leadership-section {
+    padding: 3rem 1.5rem 5rem;
+  }
+  .leadership-header h1 {
+    font-family: var(--valkey-cond);
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    margin: 0 0 0.75rem;
+  }
+  .leadership-header p {
+    color: var(--valkey-text-light);
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 52rem;
+    margin: 0;
+  }
+  .leadership-section h2 {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+    margin: 3rem 0 1.5rem;
+    font-size: 1.75rem;
+  }
+  .leadership-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+  .leadership-card {
+    border: 1px solid var(--valkey-line);
+    border-radius: 10px;
+    padding: 1.5rem;
+    background: #fff;
+    text-align: center;
+    transition:
+      box-shadow 0.15s ease,
+      border-color 0.15s ease;
+  }
+  .leadership-card:hover {
+    border-color: var(--valkey-blue-100);
+    box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08);
+  }
+  .leadership-card-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 0.75rem;
+    display: block;
+    border: 2px solid var(--valkey-line);
+  }
+  .leadership-card h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+    color: var(--valkey-text);
+  }
+  .leadership-card h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--valkey-blue-300);
+  }
+  .leadership-card p {
+    margin: 0 0 1rem;
+    color: var(--valkey-text-light);
+    font-size: 0.9rem;
+  }
+  .leadership-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  .leadership-card-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: var(--valkey-bg-soft);
+    color: var(--valkey-blue-300);
+    border: 1px solid var(--valkey-line);
+    border-radius: 50%;
+    text-decoration: none;
+    transition:
+      background 0.15s ease,
+      color 0.15s ease;
+  }
+  .leadership-card-actions .btn:hover {
+    background: var(--valkey-blue-300);
+    color: #fff;
+  }
+  .leadership-card-actions .btn .icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+  }
+</style>

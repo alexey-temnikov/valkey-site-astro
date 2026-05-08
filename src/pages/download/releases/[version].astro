@@ -1,7 +1,6 @@
 ---
 import MarketingLayout from "../../../layouts/MarketingLayout.astro";
 import ReleaseCard from "../../../components/ReleaseCard.astro";
-import NewsletterSection from "../../../components/NewsletterSection.astro";
 import { parseReleases, slug, type Release } from "../../../lib/releases";
 
 export async function getStaticPaths() {
@@ -39,8 +38,6 @@ const { release } = Astro.props;
 
     <ReleaseCard release={release} heading="none" />
   </section>
-
-  <NewsletterSection />
 </MarketingLayout>
 
 <style>

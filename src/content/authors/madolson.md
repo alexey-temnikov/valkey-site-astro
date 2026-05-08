@@ -1,14 +1,10 @@
 ---
-handle: madolson
 name: Madelyn Olson
-bio: 'Madelyn Olson is a software engineer at AWS and a member of the Valkey Technical
-  Steering Committee.
-
-  When she is not busy writing databases, she enjoys hiking the serene nature of the
-  pacific northwes'
-image: /assets/media/authors/madolson.jpeg
+photo: /assets/media/authors/madolson.jpeg
 github: madolson
+tsc:
+  affiliation: AWS
+  position: Committee Chair
 ---
-
 Madelyn Olson is a software engineer at AWS and a member of the Valkey Technical Steering Committee.
 When she is not busy writing databases, she enjoys hiking the serene nature of the pacific northwest.

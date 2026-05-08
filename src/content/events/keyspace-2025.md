@@ -2,7 +2,7 @@
 title: "Keyspace Amsterdam"
 date: 2025-08-28
 event_type: "first-party"
-event_logo: "/assets/events/keyspace-2025/keyspace-logo-6.png"
+event_logo: "/events/keyspace-2025/keyspace-logo-6.png"
 location: "RAI Amsterdam Convention Centre, Amsterdam, Netherlands"
 location_url: "https://www.google.com/maps/place/Amsterdam+RAI/@52.3411938,4.8860407,1232m"
 body_class: "keyspace-2025"

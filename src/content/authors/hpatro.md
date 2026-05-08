@@ -1,18 +1,10 @@
 ---
-handle: hpatro
 name: Harkrishn Patro
-bio: 'Harkrishn Patro is a Software Engineer at AWS.
-
-
-  Harkrishn is passionate about distributed systems, databases, anything related to
-  data.
-
-
-  In his spare time, Harkrishn loves to play badminton or go for '
-image: /assets/media/authors/hpatro.jpeg
+photo: /assets/media/authors/hpatro.jpeg
 github: hpatro
+tsc:
+  affiliation: AWS
 ---
-
 Harkrishn Patro is a Software Engineer at AWS.
 
 Harkrishn is passionate about distributed systems, databases, anything related to data.

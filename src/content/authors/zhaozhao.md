@@ -1,7 +1,8 @@
 ---
-handle: zhaozhao
 name: Zhao Zhao
-bio: ''
-image: /img/valkey-logo-og.png
+photo: /img/valkey-logo-og.png
 github: soloestoy
+tsc:
+  affiliation: Alibaba
 ---
+
