@@ -132,7 +132,7 @@ jobs:
               const fs = require('fs');
               let cfg = fs.readFileSync('astro.config.mjs', 'utf8');
               cfg = cfg.replace(/site:\s*\"[^\"]+\"/, 'site: \"https://glide.valkey.io\",\n  base: \"/glide/\"');
-              cfg = cfg.replace(/starlightLinksValidator\([^)]*\{[\s\S]*?\}\s*\)/, '/* links validator disabled */');
+              cfg = cfg.replace(/plugins:\s*\[[\s\S]*?\n      \],/, 'plugins: [],');
               fs.writeFileSync('astro.config.mjs', cfg);
             "
             # pnpm-workspace.yaml has onlyBuiltDependencies but no packages
