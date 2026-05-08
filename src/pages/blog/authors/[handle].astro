@@ -1,0 +1,66 @@
+---
+import MarketingLayout from "../../../layouts/MarketingLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const authorFiles = import.meta.glob("/src/content/authors/*.md", { eager: true });
+  return Object.entries(authorFiles).map(([path, mod]: [string, any]) => {
+    const handle = path.split("/").pop()!.replace(".md", "");
+    const fm = mod.frontmatter ?? {};
+    return {
+      params: { handle },
+      props: { name: fm.name ?? handle, image: fm.image ?? "", github: fm.github ?? "", html: mod.compiledContent?.() ?? "" },
+    };
+  });
+}
+
+const { handle } = Astro.params;
+const { name, image, github, html } = Astro.props;
+
+const posts = (await getCollection("blog"))
+  .filter((p) => (p.data.authors ?? []).includes(handle!))
+  .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+function postHref(p: (typeof posts)[number]) {
+  return `/blog/${p.data.slug ?? p.id.replace(/^\d{4}-\d{2}-\d{2}-/, "")}/`;
+}
+function formatDate(d: Date) {
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+---
+
+<MarketingLayout title={`${name} – Valkey Blog`}>
+  <main class="mx-auto max-w-3xl px-4 py-12">
+    <div class="flex items-center gap-4 mb-6">
+      <img
+        src={image || "/img/valkey-logo-og.png"}
+        alt={name}
+        class="w-24 h-24 rounded-full object-cover"
+      />
+      <div>
+        <h1 class="text-2xl font-bold">{name}</h1>
+        {github && (
+          <a href={`https://github.com/${github}`} class="text-sm text-gray-500 hover:text-indigo-600">
+            @{github}
+          </a>
+        )}
+      </div>
+    </div>
+
+    {html && <div class="prose mb-8" set:html={html} />}
+
+    <h2 class="text-xl font-semibold mb-4">Posts ({posts.length})</h2>
+    {posts.length === 0 ? (
+      <p class="text-gray-500">No posts yet.</p>
+    ) : (
+      <ul class="space-y-3">
+        {posts.map((p) => (
+          <li>
+            <a href={postHref(p)} class="hover:text-indigo-600 font-medium">{p.data.title}</a>
+            <span class="text-sm text-gray-500 ml-2">{formatDate(p.data.pubDate)}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </main>
+</MarketingLayout>

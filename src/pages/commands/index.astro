@@ -1,0 +1,304 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { getCommandData, groupedCommands } from "../../lib/commands";
+
+const { groups } = getCommandData();
+const byGroup = groupedCommands();
+
+// Normalise group keys: data may use underscores, groups.json uses dashes
+function normaliseKey(key: string): string {
+  return key.replace(/_/g, "-");
+}
+
+function humaniseGroup(key: string): string {
+  return key
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function displayForGroup(g: string): string {
+  const normalised = normaliseKey(g);
+  return groups[normalised]?.display ?? groups[g]?.display ?? humaniseGroup(g);
+}
+
+function descriptionForGroup(g: string): string {
+  const normalised = normaliseKey(g);
+  return groups[normalised]?.description ?? groups[g]?.description ?? "";
+}
+
+// Preserve groups.json order
+const groupOrder = Object.keys(groups).filter((g) => {
+  // Check both dashed and underscored variants
+  return byGroup[g]?.length || byGroup[g.replace(/-/g, "_")]?.length;
+});
+// Add any groups that appear in data but not in groups.json (after normalisation)
+for (const g of Object.keys(byGroup)) {
+  const normalised = normaliseKey(g);
+  if (!groupOrder.includes(g) && !groupOrder.includes(normalised)) {
+    groupOrder.push(g);
+  }
+}
+
+function commandsForGroup(g: string) {
+  return byGroup[g] ?? byGroup[g.replace(/-/g, "_")] ?? byGroup[g.replace(/_/g, "-")] ?? [];
+}
+
+const totalCommands = Object.values(byGroup).reduce((n, cs) => n + cs.length, 0);
+
+// Flat alphabetical list of all commands
+const allCommandsSorted = Object.values(byGroup)
+  .flat()
+  .sort((a, b) => a.title.localeCompare(b.title));
+---
+
+<MarketingLayout
+  title="Commands · Valkey"
+  description="Full reference for every Valkey command, including first-party modules."
+>
+  <section class="commands-index width-limiter" id="top">
+    <h1>Valkey Commands</h1>
+    <p class="lead">
+      Complete reference for all <strong>{totalCommands}</strong> Valkey commands,
+      grouped by data type. Includes first-party modules (Bloom filter, JSON,
+      Search).
+    </p>
+
+    <div class="search-container">
+      <input
+        type="text"
+        id="command-search"
+        placeholder="Filter commands…"
+        aria-label="Filter commands"
+      />
+    </div>
+
+    <div id="no-results" class="no-results" style="display:none;">
+      <p><strong>No commands match your filter.</strong></p>
+    </div>
+
+    <nav class="group-jump" aria-label="Jump to group">
+      {groupOrder.map((g) => (
+        <a href={`#${normaliseKey(g)}`}>{displayForGroup(g)}</a>
+      ))}
+    </nav>
+
+    {groupOrder.map((g) => {
+      const display = displayForGroup(g);
+      const description = descriptionForGroup(g);
+      const commands = commandsForGroup(g);
+      const anchorId = normaliseKey(g);
+      return (
+        <section class="group-section" id={anchorId} data-group>
+          <header>
+            <h2>{display}</h2>
+            {description && <p>{description}</p>}
+          </header>
+          <table class="command-table">
+            <tbody>
+              {commands.map((c) => (
+                <tr data-cmd={c.title.toLowerCase()} data-summary={(c.data.summary ?? "").toLowerCase()}>
+                  <th>
+                    <a href={`/commands/${c.slug}/`}>
+                      <code>{c.title}</code>
+                    </a>
+                  </th>
+                  <td>{c.data.summary ?? ""}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div class="back-to-top">
+            <a href="#top">↑ Back to top</a>
+          </div>
+        </section>
+      );
+    })}
+
+    <section class="alpha-section" id="alphabetical" data-group>
+      <h2>Alphabetical Command List</h2>
+      <ul class="alpha-list">
+        {allCommandsSorted.map((c) => (
+          <li data-cmd={c.title.toLowerCase()} data-summary={(c.data.summary ?? "").toLowerCase()}>
+            <a href={`/commands/${c.slug}/`}><code>{c.title}</code></a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </section>
+</MarketingLayout>
+
+<script>
+  const input = document.getElementById("command-search") as HTMLInputElement;
+  const noResults = document.getElementById("no-results")!;
+  const groups = document.querySelectorAll("[data-group]");
+
+  input.addEventListener("input", () => {
+    const q = input.value.toLowerCase().trim();
+    let totalVisible = 0;
+
+    groups.forEach((group) => {
+      const rows = group.querySelectorAll("[data-cmd]");
+      let groupVisible = 0;
+      rows.forEach((row) => {
+        const el = row as HTMLElement;
+        const match =
+          !q ||
+          el.dataset.cmd!.includes(q) ||
+          el.dataset.summary!.includes(q);
+        el.style.display = match ? "" : "none";
+        if (match) groupVisible++;
+      });
+      (group as HTMLElement).style.display = groupVisible ? "" : "none";
+      totalVisible += groupVisible;
+    });
+
+    noResults.style.display = totalVisible === 0 && q ? "block" : "none";
+  });
+</script>
+
+<style>
+  .commands-index {
+    padding: 3rem 1.5rem 5rem;
+  }
+  .commands-index h1 {
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    margin-bottom: 0.5rem;
+  }
+  .lead {
+    color: var(--valkey-text-light);
+    font-size: 1.05rem;
+    max-width: 50rem;
+    margin: 0 0 2rem;
+  }
+  .search-container {
+    margin-bottom: 1.5rem;
+  }
+  #command-search {
+    width: 100%;
+    max-width: 30rem;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--valkey-line);
+    border-radius: 6px;
+  }
+  #command-search:focus {
+    outline: 2px solid var(--valkey-blue-300);
+    border-color: var(--valkey-blue-300);
+  }
+  .no-results {
+    padding: 2rem;
+    text-align: center;
+    color: var(--valkey-text-light);
+  }
+  .group-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 3rem;
+    padding: 1rem;
+    background: var(--valkey-bg-soft);
+    border-radius: 8px;
+  }
+  .group-jump a {
+    padding: 0.35rem 0.75rem;
+    background: #fff;
+    border: 1px solid var(--valkey-line);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: var(--valkey-text);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .group-jump a:hover {
+    background: var(--valkey-blue-300);
+    color: #fff;
+    border-color: var(--valkey-blue-300);
+    text-decoration: none;
+  }
+  .group-section {
+    scroll-margin-top: 100px;
+    margin-bottom: 3rem;
+  }
+  .group-section header h2 {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+    margin: 0 0 0.25rem;
+    font-size: 1.6rem;
+  }
+  .group-section header p {
+    color: var(--valkey-text-light);
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+  }
+  .command-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .command-table tr {
+    border-bottom: 1px solid var(--valkey-line);
+  }
+  .command-table tr:hover {
+    background: var(--valkey-bg-soft);
+  }
+  .command-table th {
+    text-align: left;
+    padding: 0.5rem 1rem 0.5rem 0;
+    font-weight: normal;
+    min-width: 14rem;
+    vertical-align: top;
+  }
+  .command-table th a {
+    color: var(--valkey-blue-300);
+  }
+  .command-table th code {
+    font-family: var(--valkey-mono);
+    font-size: 0.9em;
+    color: inherit;
+  }
+  .command-table td {
+    padding: 0.5rem 0;
+    color: var(--valkey-text-light);
+    vertical-align: top;
+  }
+  .back-to-top {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+  }
+  .back-to-top a {
+    color: var(--valkey-text-light);
+  }
+  .alpha-section {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--valkey-line);
+  }
+  .alpha-section h2 {
+    font-family: var(--valkey-cond);
+    font-size: 1.6rem;
+    color: var(--valkey-deep-blue);
+    margin-bottom: 1rem;
+  }
+  .alpha-list {
+    column-count: 3;
+    column-gap: 2rem;
+    list-style: none;
+    padding: 0;
+    font-size: 0.85rem;
+  }
+  .alpha-list li {
+    padding: 0.2rem 0;
+    break-inside: avoid;
+  }
+  .alpha-list a {
+    color: var(--valkey-blue-300);
+  }
+  @media (max-width: 768px) {
+    .alpha-list {
+      column-count: 1;
+    }
+  }
+</style>

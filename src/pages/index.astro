@@ -1,0 +1,342 @@
+---
+import MarketingLayout from "../layouts/MarketingLayout.astro";
+import { getCollection } from "astro:content";
+import participants from "../data/participants.json";
+
+const allPosts = await getCollection("blog");
+const latestPosts = allPosts
+  .sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime())
+  .slice(0, 2);
+
+const docCards = [
+  {
+    title: "Install",
+    description:
+      "Step-by-step instructions on how to install and configure Valkey for first-time users.",
+    button: "See Installation Guide",
+    href: "/topics/installation/",
+  },
+  {
+    title: "Usage guide",
+    description:
+      "Detailed documentation on the various datatypes supported by Valkey and best practices.",
+    button: "Documentation by topic",
+    href: "/topics/",
+  },
+  {
+    title: "Valkey API",
+    description: "View the full list of Valkey commands including first-party modules.",
+    button: "Command Reference",
+    href: "/commands/",
+  },
+  {
+    title: "Clients",
+    description: "Official Valkey client libraries include support for:",
+    features: ["Python", "Java", "Go", "Node.js", "PHP", "C#"],
+    button: "Learn More",
+    href: "/clients/",
+  },
+];
+
+const totalSlides = Math.ceil(participants.length / 3);
+---
+
+<MarketingLayout title="Valkey" bodyClass="homepage">
+  <section class="hero">
+    <h1>FAST. RELIABLE.</h1>
+    <h1>OPEN SOURCE, FOREVER.</h1>
+    <p class="subtitle">
+      Valkey is an open source (BSD) high-performance key/value datastore that supports a
+      variety of workloads such as caching, message queues, and can act as a primary
+      database. The project is backed by the Linux Foundation, ensuring it will remain
+      open source forever.
+    </p>
+    <a class="cta" href="/topics/quickstart/">GET STARTED</a>
+  </section>
+
+  <section class="home-section whats-new-section">
+    <div class="width-limiter">
+      <div class="whats-new-grid">
+        <div class="whats-new-col">
+          <h3>Latest Release</h3>
+          <p class="release-version">Version 9.x</p>
+          <p class="release-date">October 2025</p>
+          <a href="/download/" class="whats-new-link">Download →</a>
+        </div>
+        <div class="whats-new-col">
+          <h3>Performance</h3>
+          <p>Valkey delivers industry-leading throughput with sub-millisecond latency at scale.</p>
+          <a href="/performance/" class="whats-new-link">Explore →</a>
+        </div>
+        <div class="whats-new-col">
+          <h3>Latest Blog Posts</h3>
+          {latestPosts.map((post) => (
+            <div class="blog-entry">
+              <a href={`/blog/${post.data.slug || post.id}/`}>{post.data.title}</a>
+              <span class="blog-date">{new Date(post.data.pubDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-section docs-section">
+    <div class="width-limiter">
+      <h2>Documentation</h2>
+      <p class="doc-lead">
+        Valkey can run as either a <strong>standalone</strong> daemon or in a <strong>cluster</strong>, with options for <strong>replication</strong> and <strong>high availability</strong>. Valkey natively supports a rich collection of datatypes, including <strong>strings</strong>, <strong>numbers</strong>, <strong>hashes</strong>, <strong>lists</strong>, <strong>sets</strong>, <strong>sorted sets</strong>, <strong>bitmaps</strong>, <strong>hyperloglogs</strong> and more. You can operate on data structures in-place with an expressive collection of commands. Valkey also supports native extensibility with built-in scripting support for <strong>Lua</strong> and supports <strong>module</strong> plugins to create new commands, data types, and more.
+      </p>
+      <div class="doc-cards">
+        {
+          docCards.map((c) => (
+            <a class="doc-card" href={c.href}>
+              <h3>{c.title}</h3>
+              <p>{c.description}</p>
+              {c.features && (
+                <ul class="card-features">
+                  {c.features.map((f) => <li>{f}</li>)}
+                </ul>
+              )}
+              <span class="card-button">{c.button} →</span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="home-section participants-section">
+    <div class="width-limiter">
+      <h2>Participants</h2>
+      <p class="section-lead">
+        The Valkey project participants are a diverse group of organizations that have come together to maintain and contribute to the project. Valkey participants are more than vendors, they are dedicated to continuously strengthening the long-term health and viability of this project so that everyone can benefit from it. Since its inception Valkey has enjoyed steady adoption demonstrating the industry's desire for an open, community-driven database solution. We look forward to seeing our list of participants grow as more companies work on our project.
+      </p>
+      <div class="carousel-container">
+        <div class="carousel-track" id="carouselTrack">
+          {Array.from({ length: totalSlides }).map((_, slideIdx) => (
+            <div class="carousel-slide">
+              {participants.slice(slideIdx * 3, slideIdx * 3 + 3).map((p: any) => (
+                <a href={p.link} target="_blank" rel="noopener" class="participant-card">
+                  <div class="participant-logo">
+                    <img src={p.image.path} alt={p.image.alt} loading="lazy" />
+                  </div>
+                  <h4>{p.name}</h4>
+                  <p class="participant-desc">{p.offering ? p.offering.split('\n')[0] : p.company ? p.company.split('\n')[0] : 'Valkey participant'}</p>
+                </a>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div class="carousel-dots">
+          {Array.from({ length: totalSlides }).map((_, i) => (
+            <button class={`dot ${i === 0 ? 'active' : ''}`} data-slide={i} aria-label={`Go to slide ${i + 1}`} />
+          ))}
+        </div>
+      </div>
+      <p class="section-cta">
+        <a href="/participants/">See all participants →</a>
+      </p>
+    </div>
+  </section>
+
+</MarketingLayout>
+
+<script>
+  const track = document.getElementById('carouselTrack');
+  const dots = document.querySelectorAll('.carousel-dots .dot');
+  let current = 0;
+  dots.forEach((dot, i) => {
+    dot.addEventListener('click', () => {
+      current = i;
+      track!.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach(d => d.classList.remove('active'));
+      dot.classList.add('active');
+    });
+  });
+</script>
+
+<style>
+  .home-section {
+    padding: 4rem 1.5rem;
+  }
+  .home-section h2 {
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    color: var(--valkey-deep-blue);
+    text-align: center;
+    margin: 0 0 0.75rem;
+  }
+  .section-lead {
+    text-align: center;
+    color: var(--valkey-text-light);
+    max-width: 52rem;
+    margin: 0 auto 2.5rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+
+  /* What's New */
+  .whats-new-section {
+    background: var(--valkey-bg-soft);
+  }
+  .whats-new-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .whats-new-col h3 {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    color: var(--valkey-deep-blue);
+    margin: 0 0 0.75rem;
+  }
+  .release-version {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--valkey-deep-blue);
+    margin: 0 0 0.25rem;
+  }
+  .release-date {
+    color: var(--valkey-text-light);
+    margin: 0 0 0.75rem;
+  }
+  .whats-new-link {
+    color: var(--valkey-blue-300);
+    font-weight: 600;
+  }
+  .blog-entry {
+    margin-bottom: 0.75rem;
+  }
+  .blog-entry a {
+    color: var(--valkey-deep-blue);
+    font-weight: 500;
+    display: block;
+  }
+  .blog-date {
+    font-size: 0.85rem;
+    color: var(--valkey-text-light);
+  }
+
+  /* Docs */
+  .docs-section {
+    background: #fff;
+  }
+  .doc-lead {
+    text-align: center;
+    max-width: 56rem;
+    margin: 0 auto 2.5rem;
+    color: var(--valkey-text-light);
+    font-size: 1.05rem;
+    line-height: 1.6;
+  }
+  .card-features {
+    list-style: disc;
+    padding-left: 1.25rem;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--valkey-text-light);
+  }
+
+  /* Participants carousel */
+  .participants-section {
+    background: var(--valkey-bg-soft);
+  }
+  .carousel-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+  }
+  .carousel-track {
+    display: flex;
+    transition: transform 0.4s ease;
+  }
+  .carousel-slide {
+    min-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+  }
+  .participant-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
+  }
+  .participant-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .participant-logo {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+  .participant-logo img {
+    max-height: 48px;
+    max-width: 120px;
+    object-fit: contain;
+  }
+  .participant-card h4 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    color: var(--valkey-deep-blue);
+  }
+  .participant-desc {
+    font-size: 0.85rem;
+    color: var(--valkey-text-light);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    background: #ccc;
+    cursor: pointer;
+    padding: 0;
+  }
+  .dot.active {
+    background: var(--valkey-blue-300);
+  }
+  .section-cta {
+    text-align: center;
+    margin-top: 2.5rem;
+  }
+  .section-cta a {
+    color: var(--valkey-blue-300);
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .whats-new-grid {
+      grid-template-columns: 1fr;
+    }
+    .carousel-slide {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

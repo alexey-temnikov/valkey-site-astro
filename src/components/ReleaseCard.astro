@@ -1,0 +1,108 @@
+---
+/**
+ * ReleaseCard — renders one Valkey release's download assets.
+ *
+ * Mirrors `valkey-io.github.io/templates/includes/release.html`: Release Date,
+ * GitHub Release link, Docker Hub tags + example, optional Package Managers,
+ * Binary Artifacts per distro/arch (with sha256 sibling).
+ *
+ * Used by:
+ *   - src/pages/download/index.astro (latest + older-per-major)
+ *   - src/pages/download/releases/[version].astro (one card per release page)
+ */
+import type { Release } from "../lib/releases";
+import { formatDate, majorVersion } from "../lib/releases";
+
+export interface Props {
+  release: Release;
+  /**
+   * If "major", render `<h3>Version {N}.x.x</h3>` (download/index usage).
+   * If "none", render no version header (per-release page already has an H1).
+   */
+  heading?: "major" | "none";
+}
+
+const { release, heading = "major" } = Astro.props;
+---
+
+<div class="release-section">
+  {heading === "major" && <h3>Version {majorVersion(release)}.x.x</h3>}
+
+  <p>
+    <strong>Release Date:</strong> {formatDate(release.date)}<br />
+    <strong>GitHub Release:</strong>{" "}
+    <a href={`https://github.com/valkey-io/valkey/releases/tag/${release.tag}`}>
+      {release.tag}
+    </a>
+  </p>
+  <hr />
+
+  {release.container_registry?.map((registry) => (
+    <div>
+      <h4>{registry.name} <small>(<a href={registry.link}>{registry.id}</a>)</small></h4>
+      <p>Tags:</p>
+      <ul>
+        {registry.tags.map((t) => (
+          <li><code>{registry.id}:{t}</code></li>
+        ))}
+      </ul>
+      <p>
+        Example: <code>docker run --rm {registry.id}:{registry.tags[0]}</code>
+      </p>
+      <hr />
+    </div>
+  ))}
+
+  {release.packages && release.packages.length > 0 && (
+    <div>
+      <h4>Package Managers</h4>
+      {release.packages.map((pkg) => (
+        <div>
+          <h5>{pkg.name}:</h5>
+          <p>
+            Package Name:{" "}
+            {pkg.url ? <a href={pkg.url}>{pkg.id}</a> : <span>{pkg.id}</span>}
+          </p>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <h4>Binary Artifacts</h4>
+  {release.artifacts?.map((artifact) =>
+    artifact.arch.map((arch) => {
+      const fname = `${release.artifact_source}${release.artifact_fname}-${release.tag}-${artifact.distro}-${arch}.tar.gz`;
+      return (
+        <span>
+          <a href={fname}>{arch} / {artifact.distro}</a>{" "}
+          <small>(<a href={`${fname}.sha256`}>sha256</a>)</small><br />
+        </span>
+      );
+    })
+  )}
+</div>
+
+<style>
+  .release-section {
+    margin-bottom: 3rem;
+  }
+  .release-section h3 {
+    margin-top: 2rem;
+  }
+  .release-section h4 {
+    margin-top: 1.5rem;
+  }
+  .release-section ul {
+    margin: 0.25rem 0 0.5rem;
+    padding-left: 1.25rem;
+  }
+  .release-section code {
+    font-family: var(--valkey-mono, "Fira Mono", Menlo, monospace);
+    font-size: 0.95em;
+  }
+  .release-section hr {
+    border: 0;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+    margin: 1.25rem 0;
+  }
+</style>

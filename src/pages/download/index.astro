@@ -1,0 +1,67 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import ReleaseCard from "../../components/ReleaseCard.astro";
+import NewsletterSection from "../../components/NewsletterSection.astro";
+import { parseReleases, latestPerMajor } from "../../lib/releases";
+
+const modules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
+  string,
+  { frontmatter: Record<string, any> }
+>;
+
+// latestPerMajor returns newest-major first (9.x, 8.x, 7.x).
+const latest = latestPerMajor(parseReleases(modules));
+const [newest, ...pastMajors] = latest;
+---
+
+<MarketingLayout title="Download Latest · Valkey">
+  <div class="page-subhead">
+    <h1 class="page-title">Download Latest</h1>
+  </div>
+
+  <section class="width-limiter download-page">
+    <p class="download-lead">
+      You can get the latest releases of Valkey from this page.<br />
+      For installation instructions, supported package managers, and how to configure
+      Valkey, see the <a href="/topics/installation/">installation</a> page.<br />
+      The <a href="/download/releases/">releases</a> page contains links to download
+      all current and previous releases (including any security fixes for previous
+      released versions).
+    </p>
+
+    <hr />
+
+    {newest && <ReleaseCard release={newest} />}
+
+    {pastMajors.length > 0 && (
+      <>
+        <h2>Latest supported version of past releases</h2>
+        {pastMajors.map((release) => <ReleaseCard release={release} />)}
+      </>
+    )}
+  </section>
+
+  <NewsletterSection />
+</MarketingLayout>
+
+<style>
+  .download-page {
+    padding: 2rem 1.5rem 4rem;
+  }
+  .download-page .download-lead {
+    line-height: 1.6;
+    color: var(--valkey-text);
+  }
+  .download-page h2 {
+    margin-top: 3rem;
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: var(--valkey-deep-blue);
+  }
+  .download-page hr {
+    border: 0;
+    border-top: 1px solid var(--valkey-line);
+    margin: 1.5rem 0;
+  }
+</style>

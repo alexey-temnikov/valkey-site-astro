@@ -1,0 +1,60 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+
+export async function getStaticPaths() {
+  const pages = import.meta.glob("/src/content/events/*.md", { eager: true });
+  return Object.entries(pages).map(([path, mod]: [string, any]) => {
+    const slug = path.split("/").pop()!.replace(".md", "");
+    return { params: { slug }, props: { frontmatter: mod.frontmatter, Content: mod.default } };
+  });
+}
+
+const { frontmatter, Content } = Astro.props;
+---
+
+<MarketingLayout
+  title={`${frontmatter.title} · Valkey Events`}
+  description={frontmatter.title}
+  bodyClass={frontmatter.body_class ?? ""}
+>
+  <section class="event-page width-limiter">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="/events/">Events</a> <span class="sep">›</span>
+      <span aria-current="page">{frontmatter.title}</span>
+    </nav>
+
+    <header class="event-header">
+      {frontmatter.event_logo ? (
+        <img src={frontmatter.event_logo} alt={frontmatter.title} class="event-logo" />
+      ) : (
+        <h1>{frontmatter.title}</h1>
+      )}
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <footer class="post-footer">
+      <a href="/events/" class="back">← Back to events</a>
+    </footer>
+  </section>
+</MarketingLayout>
+
+<style>
+  .event-page { max-width: 780px; padding: 2rem 1.5rem 5rem; }
+  .breadcrumbs { font-size: 0.85rem; color: var(--valkey-text-light); margin-bottom: 1.5rem; }
+  .breadcrumbs a { color: var(--valkey-blue-300); }
+  .breadcrumbs .sep { margin: 0 0.4rem; color: var(--valkey-line); }
+  .event-header { margin-bottom: 2rem; }
+  .event-logo { max-width: 400px; height: auto; }
+  .event-header h1 { font-family: var(--valkey-cond); font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; margin: 0; }
+  .prose { line-height: 1.7; font-size: 1.02rem; }
+  .prose :global(h2) { font-family: var(--valkey-cond); text-transform: uppercase; letter-spacing: 0.02em; color: var(--valkey-deep-blue); margin-top: 2rem; font-size: 1.5rem; }
+  .prose :global(h3) { color: var(--valkey-text); margin-top: 1.75rem; }
+  .prose :global(iframe) { max-width: 100%; border-radius: 8px; margin: 1rem 0; }
+  .prose :global(ul) { padding-left: 1.5rem; }
+  .prose :global(a) { color: var(--valkey-blue-300); }
+  .post-footer { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--valkey-line); }
+  .back { color: var(--valkey-blue-300); font-weight: 600; }
+</style>

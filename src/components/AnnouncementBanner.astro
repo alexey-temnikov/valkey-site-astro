@@ -1,0 +1,41 @@
+---
+// Announcement banner, dismissible for 24 hours via localStorage.
+export interface Props {
+  message?: string;
+  linkText?: string;
+  linkUrl?: string;
+}
+const {
+  message = "What's new in Valkey 9.0?",
+  linkText = "Read the announcement",
+  linkUrl = "/blog/introducing-valkey-9/",
+} = Astro.props;
+---
+
+<div class="announcement-banner" id="announcement-banner" data-pagefind-ignore>
+  <div class="width-limiter">
+    <strong>{message}</strong>
+    <span> Discover new features and improvements. </span>
+    <a href={linkUrl}>{linkText}</a>.
+  </div>
+  <button class="close" aria-label="Dismiss announcement" id="close-banner">×</button>
+</div>
+
+<script is:inline>
+  (function () {
+    const KEY = "valkey:banner:closedAt";
+    const DAY = 24 * 60 * 60 * 1000;
+    const banner = document.getElementById("announcement-banner");
+    if (!banner) return;
+    const closed = Number(localStorage.getItem(KEY) || 0);
+    if (closed && Date.now() - closed < DAY) {
+      banner.hidden = true;
+      return;
+    }
+    const btn = document.getElementById("close-banner");
+    btn?.addEventListener("click", () => {
+      localStorage.setItem(KEY, String(Date.now()));
+      banner.hidden = true;
+    });
+  })();
+</script>

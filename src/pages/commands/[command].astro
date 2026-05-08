@@ -1,0 +1,355 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import {
+  commandPaths,
+  getCommandData,
+  groupedCommands,
+  moduleFor,
+  argsToUsage,
+  type Command,
+} from "../../lib/commands";
+import { marked } from "marked";
+
+export async function getStaticPaths() {
+  return commandPaths();
+}
+
+interface Props {
+  command: Command;
+}
+const { command } = Astro.props as Props;
+const { modules, groups } = getCommandData();
+const moduleInfo = moduleFor(command.slug, modules);
+const usage = argsToUsage(command.data.arguments);
+const renderedDescription = marked.parse(command.description ?? "", { async: false });
+const renderedResp2 = command.resp2Reply
+  ? marked.parse(command.resp2Reply, { async: false })
+  : null;
+const renderedResp3 = command.resp3Reply
+  ? marked.parse(command.resp3Reply, { async: false })
+  : null;
+
+const groupDisplay = groups[command.group]?.display ?? command.group;
+const grouped = groupedCommands();
+---
+
+<MarketingLayout
+  title={`${command.title} · Valkey`}
+  description={command.data.summary ?? `${command.title} command reference`}
+>
+  <div class="command-layout width-limiter">
+    <aside class="command-sidebar">
+      <nav aria-label="All commands">
+        {Object.entries(grouped).map(([groupKey, cmds]) => (
+          <details open={groupKey === command.group}>
+            <summary>{groups[groupKey]?.display ?? groupKey}</summary>
+            <ul>
+              {cmds.map((c) => (
+                <li>
+                  <a
+                    href={`/commands/${c.slug}/`}
+                    aria-current={c.slug === command.slug ? "page" : undefined}
+                  >{c.title}</a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))}
+      </nav>
+    </aside>
+
+    <section class="command-page">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/commands/">Commands</a> <span class="sep">›</span>
+        <a href={`/commands/#${command.group}`}>{groupDisplay}</a> <span class="sep">›</span>
+        <span aria-current="page">{command.title}</span>
+      </nav>
+
+      <header class="command-hero">
+        <h1>{command.title}</h1>
+        {command.data.summary && <p class="summary">{command.data.summary}</p>}
+        {command.data.deprecated_since && (
+          <p class="deprecated">
+            <strong>Deprecated</strong> as of {command.data.deprecated_since}
+            {command.data.replaced_by && <> — use <code>{command.data.replaced_by}</code> instead</>}.
+          </p>
+        )}
+      </header>
+
+      <dl class="meta-grid">
+        <dt>Usage</dt>
+        <dd><code>{command.title}{usage ? " " + usage : ""}</code></dd>
+
+        {command.data.complexity && (
+          <>
+            <dt>Complexity</dt>
+            <dd>{command.data.complexity}</dd>
+          </>
+        )}
+
+        {moduleInfo && (
+          <>
+            <dt>Module</dt>
+            <dd>
+              <a href={moduleInfo.repo} target="_blank" rel="noopener">
+                {moduleInfo.name}
+              </a>
+            </dd>
+          </>
+        )}
+
+        {command.data.module_since && (
+          <>
+            <dt>Since module version</dt>
+            <dd>{command.data.module_since}</dd>
+          </>
+        )}
+
+        {command.data.since && !moduleInfo && (
+          <>
+            <dt>Since</dt>
+            <dd>{command.data.since}</dd>
+          </>
+        )}
+
+        {command.data.acl_categories && command.data.acl_categories.length > 0 && (
+          <>
+            <dt>ACL Categories</dt>
+            <dd>{command.data.acl_categories.map((c) => `@${c.toLowerCase()}`).join(", ")}</dd>
+          </>
+        )}
+
+        {command.data.command_flags && command.data.command_flags.length > 0 && (
+          <>
+            <dt>Command flags</dt>
+            <dd>{command.data.command_flags.join(", ")}</dd>
+          </>
+        )}
+      </dl>
+
+      <article class="prose" set:html={renderedDescription} />
+
+      {(renderedResp2 || renderedResp3) && (
+        <section class="replies">
+          <h2>Replies</h2>
+          {renderedResp2 && (
+            <div class="reply">
+              <h3>RESP2</h3>
+              <div class="prose" set:html={renderedResp2} />
+            </div>
+          )}
+          {renderedResp3 && (
+            <div class="reply">
+              <h3>RESP3</h3>
+              <div class="prose" set:html={renderedResp3} />
+            </div>
+          )}
+        </section>
+      )}
+
+      {command.data.history && command.data.history.length > 0 && (
+        <section class="history">
+          <h2>History</h2>
+          <ul>
+            {command.data.history.map(([version, note]) => (
+              <li>
+                <strong>{version}</strong>: {note}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </section>
+  </div>
+</MarketingLayout>
+
+<style>
+  /* 2-col grid layout */
+  .command-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 2rem;
+    padding: 2rem 1.5rem 5rem;
+    max-width: 1100px;
+  }
+
+  /* Sidebar */
+  .command-sidebar {
+    position: sticky;
+    top: 2rem;
+    align-self: start;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    font-size: 0.8rem;
+    border-right: 1px solid var(--valkey-line);
+    padding-right: 1rem;
+  }
+  .command-sidebar details {
+    margin-bottom: 0.5rem;
+  }
+  .command-sidebar summary {
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--valkey-text-light);
+    cursor: pointer;
+    padding: 0.25rem 0;
+  }
+  .command-sidebar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 0.5rem;
+  }
+  .command-sidebar li {
+    margin: 0;
+  }
+  .command-sidebar a {
+    display: block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    color: var(--valkey-text);
+    text-decoration: none;
+    font-family: var(--valkey-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .command-sidebar a:hover {
+    background: var(--valkey-bg-soft);
+  }
+  .command-sidebar a[aria-current="page"] {
+    background: var(--valkey-blue-300);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* Main content */
+  .command-page {
+    min-width: 0;
+  }
+
+  /* Responsive: collapse sidebar on narrow viewports */
+  @media (max-width: 860px) {
+    .command-layout {
+      grid-template-columns: 1fr;
+    }
+    .command-sidebar {
+      position: static;
+      max-height: none;
+      border-right: none;
+      border-bottom: 1px solid var(--valkey-line);
+      padding-right: 0;
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  /* Existing styles preserved below */
+  .breadcrumbs {
+    font-size: 0.85rem;
+    color: var(--valkey-text-light);
+    margin-bottom: 1.5rem;
+  }
+  .breadcrumbs a {
+    color: var(--valkey-blue-300);
+  }
+  .breadcrumbs .sep {
+    margin: 0 0.4rem;
+    color: var(--valkey-line);
+  }
+  .command-hero h1 {
+    font-family: var(--valkey-mono);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    margin: 0;
+    color: var(--valkey-deep-blue);
+  }
+  .command-hero .summary {
+    font-size: 1.1rem;
+    color: var(--valkey-text-light);
+    margin: 0.5rem 0 1.5rem;
+  }
+  .deprecated {
+    background: #fff3cd;
+    border-left: 4px solid var(--valkey-purple-200);
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0 1.5rem;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.5rem 1.5rem;
+    background: var(--valkey-bg-soft);
+    padding: 1.25rem 1.5rem;
+    border-radius: 10px;
+    margin: 1.5rem 0 2rem;
+    font-size: 0.95rem;
+  }
+  .meta-grid dt {
+    color: var(--valkey-text-light);
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+  }
+  .meta-grid code {
+    font-family: var(--valkey-mono);
+    background: #fff;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    border: 1px solid var(--valkey-line);
+  }
+  .prose {
+    line-height: 1.65;
+  }
+  .prose :global(h2) {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+    margin-top: 2rem;
+  }
+  .prose :global(pre) {
+    background: #1e1e2e;
+    color: #f5f5f5;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: var(--valkey-mono);
+    font-size: 0.85rem;
+  }
+  .prose :global(code) {
+    font-family: var(--valkey-mono);
+  }
+  .prose :global(p code),
+  .prose :global(li code) {
+    background: var(--valkey-bg-soft);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    border: 1px solid var(--valkey-line);
+    font-size: 0.9em;
+  }
+  .replies,
+  .history {
+    margin-top: 2.5rem;
+  }
+  .replies h2,
+  .history h2 {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+  }
+  .reply {
+    margin: 1rem 0 2rem;
+  }
+  .reply h3 {
+    font-family: var(--valkey-mono);
+    font-size: 1rem;
+    color: var(--valkey-purple-200);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+  }
+</style>

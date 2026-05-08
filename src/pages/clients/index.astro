@@ -1,0 +1,463 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import fs from "node:fs";
+import path from "node:path";
+import { marked } from "marked";
+
+// --- Load clients at build time ---
+const DOC_ROOT = path.resolve("../valkey-doc");
+const CLIENTS_ROOT = path.join(DOC_ROOT, "clients");
+const LANGS = JSON.parse(
+  fs.readFileSync(path.join(DOC_ROOT, "languages.json"), "utf8")
+);
+// Invert languages.json: { "go": "Go" }
+const slugToLabel = Object.fromEntries(
+  Object.entries(LANGS).map(([label, slug]) => [slug, label])
+);
+
+// --- Load advanced features markdown ---
+const advancedFeaturesPath = path.join(CLIENTS_ROOT, "advanced_client_features.md");
+const advancedFeaturesHtml = fs.existsSync(advancedFeaturesPath)
+  ? marked.parse(fs.readFileSync(advancedFeaturesPath, "utf8"))
+  : "";
+
+type InstallEntry = { type: string; command: string };
+
+type ClientJson = {
+  name: string;
+  description?: string;
+  repo?: string;
+  website?: string;
+  docs?: string;
+  installation?: string | InstallEntry[];
+  version?: string;
+  version_released?: string;
+  language?: string;
+  license?: string;
+  recommended?: boolean;
+  [feature: string]: unknown;
+};
+
+type Client = ClientJson & { _lang: string; _langLabel: string };
+
+function loadClients(): Client[] {
+  const out: Client[] = [];
+  if (!fs.existsSync(CLIENTS_ROOT)) return out;
+  for (const lang of fs.readdirSync(CLIENTS_ROOT)) {
+    const langDir = path.join(CLIENTS_ROOT, lang);
+    if (!fs.statSync(langDir).isDirectory()) continue;
+    for (const file of fs.readdirSync(langDir)) {
+      if (!file.endsWith(".json")) continue;
+      try {
+        const data = JSON.parse(fs.readFileSync(path.join(langDir, file), "utf8"));
+        out.push({
+          ...data,
+          _lang: lang,
+          _langLabel: slugToLabel[lang] ?? lang,
+        });
+      } catch {
+        /* ignore malformed entries */
+      }
+    }
+  }
+  return out;
+}
+
+const clients = loadClients();
+
+// Group by language label
+const byLang = new Map<string, Client[]>();
+for (const c of clients) {
+  const key = c._langLabel;
+  if (!byLang.has(key)) byLang.set(key, []);
+  byLang.get(key)!.push(c);
+}
+const sortedLangs = [...byLang.keys()].sort((a, b) => a.localeCompare(b));
+
+const featureLabels: Record<string, string> = {
+  read_from_replica: "Read from replica",
+  smart_backoff_to_prevent_connection_storm: "Smart backoff",
+  pubsub_state_restoration: "Pub/Sub restoration",
+  cluster_scan: "Cluster scan",
+  latency_based_read_from_replica: "Latency-based read",
+  AZ_based_read_from_replica: "AZ-based read",
+  client_side_caching: "Client-side caching",
+  client_capa_redirect: "CLIENT CAPA redirect",
+  persistent_connection_pool: "Persistent conn pool",
+};
+const featureKeys = Object.keys(featureLabels);
+
+function clientFeatures(c: Client) {
+  return Object.entries(featureLabels)
+    .filter(([k]) => typeof c[k] === "boolean")
+    .map(([k, label]) => ({ label, supported: Boolean(c[k]) }));
+}
+
+function getClientLink(c: Client): string | undefined {
+  return (c.website as string) || (c.docs as string) || undefined;
+}
+---
+
+<MarketingLayout
+  title="Clients · Valkey"
+  description="Official and community-maintained Valkey client libraries across every language."
+>
+  <section class="width-limiter clients-page">
+    <h1>Client Libraries</h1>
+    <p class="lead">
+      Valkey clients connect your application to a Valkey server. The
+      libraries below are maintained by the open-source community; those
+      marked <strong>Recommended</strong> are officially supported.
+    </p>
+
+    {/* --- Fix 2: Advanced Features Overview --- */}
+    <section class="advanced-features-overview">
+      <h2>Advanced Features Overview</h2>
+      <Fragment set:html={advancedFeaturesHtml} />
+    </section>
+
+    {
+      sortedLangs.map((lang) => (
+        <section class="lang-group" id={`lang-${lang.replace(/\W+/g, "-").toLowerCase()}`}>
+          <h2>{lang}</h2>
+          <div class="client-grid">
+            {byLang.get(lang)!.map((c) => (
+              <article class={`client-card${c.recommended ? " recommended" : ""}`}>
+                <header>
+                  <h3>
+                    {c.repo ? (
+                      <a href={c.repo} target="_blank" rel="noopener">
+                        {c.name}
+                      </a>
+                    ) : (
+                      c.name
+                    )}
+                  </h3>
+                  {c.recommended && <span class="tag">Recommended</span>}
+                </header>
+                {c.description && <p>{c.description}</p>}
+                {/* --- Fix 1: Handle installation as string or array-of-objects --- */}
+                {c.installation && typeof c.installation === "string" && (
+                  <pre><code>{c.installation}</code></pre>
+                )}
+                {c.installation && Array.isArray(c.installation) && (
+                  <div class="install-tabs">
+                    {(c.installation as InstallEntry[]).map((entry) => (
+                      <div class="install-block">
+                        <span class="install-label">{entry.type}</span>
+                        <pre><code>{entry.command}</code></pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <dl class="meta">
+                  {c.version && (
+                    <>
+                      <dt>Version</dt>
+                      <dd>
+                        {c.version}
+                        {c.version_released && (
+                          <span class="released"> · {c.version_released}</span>
+                        )}
+                      </dd>
+                    </>
+                  )}
+                  {c.license && (
+                    <>
+                      <dt>License</dt>
+                      <dd>{c.license}</dd>
+                    </>
+                  )}
+                </dl>
+                {clientFeatures(c).length > 0 && (
+                  <ul class="features">
+                    {clientFeatures(c).map((f) => (
+                      <li class={f.supported ? "yes" : "no"}>
+                        <span class="icon" aria-hidden="true">
+                          {f.supported ? "✓" : "—"}
+                        </span>
+                        {f.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    {/* --- Fix 3: Feature Comparison Table --- */}
+    <section class="feature-comparison">
+      <h2>Feature Comparison</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Language</th>
+              {featureKeys.map((k) => <th>{featureLabels[k]}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {clients.map((c) => (
+              <tr>
+                <td>
+                  {c.name}
+                  {getClientLink(c) && (
+                    <a href={getClientLink(c)} target="_blank" rel="noopener" class="website-link">
+                      {" "}Website ↗
+                    </a>
+                  )}
+                </td>
+                <td>{c._langLabel}</td>
+                {featureKeys.map((k) => (
+                  <td class="feature-cell">{c[k] === true ? "✓" : "—"}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+</MarketingLayout>
+
+<style>
+  .clients-page {
+    padding: 3rem 1.5rem 5rem;
+  }
+  .clients-page h1 {
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    margin-bottom: 0.5rem;
+  }
+  .lead {
+    color: var(--valkey-text-light);
+    max-width: 50rem;
+    margin: 0 0 3rem;
+    font-size: 1.05rem;
+  }
+  /* Advanced Features Overview */
+  .advanced-features-overview {
+    margin-bottom: 3rem;
+    padding: 1.5rem;
+    background: var(--valkey-bg-soft, #f8f9fa);
+    border-radius: 10px;
+    border: 1px solid var(--valkey-line);
+  }
+  .advanced-features-overview h2 {
+    color: var(--valkey-deep-blue);
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    margin: 0 0 1rem;
+  }
+  .advanced-features-overview :global(ol) {
+    padding-left: 1.25rem;
+    margin: 0;
+  }
+  .advanced-features-overview :global(li) {
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+  .advanced-features-overview :global(a) {
+    color: var(--valkey-blue-300);
+  }
+  /* Language groups */
+  .lang-group {
+    margin-bottom: 3rem;
+  }
+  .lang-group h2 {
+    color: var(--valkey-deep-blue);
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--valkey-line);
+  }
+  .client-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.25rem;
+  }
+  .client-card {
+    border: 1px solid var(--valkey-line);
+    border-radius: 10px;
+    padding: 1.25rem 1.25rem 1rem;
+    background: #fff;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .client-card:hover {
+    border-color: var(--valkey-blue-100);
+    box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08);
+  }
+  .client-card.recommended {
+    border-color: var(--valkey-blue-200);
+    border-width: 2px;
+  }
+  .client-card header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .client-card h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--valkey-text);
+  }
+  .client-card h3 a {
+    color: var(--valkey-blue-300);
+  }
+  .tag {
+    background: var(--valkey-blue-200);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .client-card p {
+    color: var(--valkey-text-light);
+    margin: 0 0 0.75rem;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+  .client-card pre {
+    background: var(--valkey-bg-soft);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-family: var(--valkey-mono);
+    font-size: 0.8rem;
+    margin: 0.75rem 0;
+    overflow-x: auto;
+  }
+  /* Install tabs for multi-format installation */
+  .install-tabs {
+    margin: 0.75rem 0;
+  }
+  .install-block {
+    margin-bottom: 0.5rem;
+  }
+  .install-block:last-child {
+    margin-bottom: 0;
+  }
+  .install-label {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--valkey-text-light);
+    margin-bottom: 0.2rem;
+  }
+  .install-block pre {
+    margin: 0;
+    background: var(--valkey-bg-soft);
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    font-family: var(--valkey-mono);
+    font-size: 0.8rem;
+    overflow-x: auto;
+  }
+  dl.meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.75rem;
+    margin: 0.75rem 0;
+    font-size: 0.85rem;
+  }
+  dl.meta dt {
+    color: var(--valkey-text-light);
+    font-weight: 600;
+  }
+  dl.meta dd {
+    margin: 0;
+    color: var(--valkey-text);
+  }
+  .released {
+    color: var(--valkey-text-light);
+    font-size: 0.8rem;
+  }
+  ul.features {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  ul.features li {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--valkey-text-light);
+  }
+  ul.features li.yes .icon {
+    color: var(--valkey-blue-200);
+    font-weight: 700;
+  }
+  ul.features li.no {
+    opacity: 0.55;
+  }
+  /* Feature Comparison Table */
+  .feature-comparison {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--valkey-line);
+  }
+  .feature-comparison h2 {
+    color: var(--valkey-deep-blue);
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    margin: 0 0 1.5rem;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
+  .feature-comparison table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .feature-comparison th,
+  .feature-comparison td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--valkey-line);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .feature-comparison th {
+    background: var(--valkey-bg-soft, #f8f9fa);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .feature-comparison td:first-child,
+  .feature-comparison td:nth-child(2) {
+    text-align: left;
+    white-space: normal;
+  }
+  .feature-cell {
+    font-size: 1rem;
+  }
+  .website-link {
+    font-size: 0.75rem;
+    color: var(--valkey-blue-300);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .website-link:hover {
+    text-decoration: underline;
+  }
+</style>

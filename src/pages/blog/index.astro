@@ -1,0 +1,320 @@
+---
+import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("blog")).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+const featured = posts.find((p) => p.data.featured) ?? posts[0];
+const rest = posts.filter((p) => p.id !== featured?.id);
+
+// Aggregate all unique types for the filter dropdown
+const allTypes = [...new Set(posts.flatMap((p) => p.data.types ?? []))].sort();
+
+// Featured sidebar: 4 most-recent featured posts
+const featuredSidebar = posts.filter((p) => p.data.featured).slice(0, 4);
+
+function postHref(p: (typeof posts)[number]) {
+  return `/blog/${p.data.slug ?? p.id.replace(/^\d{4}-\d{2}-\d{2}-/, "")}/`;
+}
+function formatDate(d: Date) {
+  return d.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+---
+
+<MarketingLayout
+  title="Blog · Valkey"
+  description="News, technical deep dives, and updates from the Valkey community."
+>
+  <section class="blog-index width-limiter">
+    <header>
+      <h1>Valkey Blog</h1>
+      <p class="lead">
+        News, technical deep dives, and updates from the Valkey community.
+      </p>
+    </header>
+
+    {featured && (
+      <article class="featured">
+        <div class="featured-text">
+          {featured.data.types[0] && <span class="badge">{featured.data.types[0]}</span>}
+          <h2>
+            <a href={postHref(featured)}>{featured.data.title}</a>
+          </h2>
+          <p class="meta">
+            {formatDate(featured.data.pubDate)}
+            {featured.data.authors.length > 0 && ` · by ${featured.data.authors.join(", ")}`}
+          </p>
+          {featured.data.description && <p>{featured.data.description}</p>}
+          <a class="read-more" href={postHref(featured)}>Read more →</a>
+        </div>
+        {featured.data.heroImage && (
+          <img src={featured.data.heroImage} alt="" class="featured-image" />
+        )}
+      </article>
+    )}
+
+    <div class="blog-content-area">
+      <div class="blog-main">
+        <div class="filter-bar">
+          <h2 class="section-heading">All posts</h2>
+          <div class="blog-type-filters">
+            <label for="blog-type-select" class="sr-only">Filter posts by type</label>
+            <select id="blog-type-select">
+              <option value="All">All Types</option>
+              {allTypes.map((t) => <option value={t}>{t}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div class="post-grid">
+          {rest.map((p) => (
+            <article class="post-card" data-type={p.data.types?.[0] ?? ""}>
+              {p.data.types[0] && <span class="badge">{p.data.types[0]}</span>}
+              <h3><a href={postHref(p)}>{p.data.title}</a></h3>
+              <p class="meta">
+                {formatDate(p.data.pubDate)}
+                {p.data.authors.length > 0 && ` · ${p.data.authors.join(", ")}`}
+              </p>
+              {p.data.description && <p class="excerpt">{p.data.description}</p>}
+            </article>
+          ))}
+        </div>
+        <p class="blog-no-results" hidden>No posts match this filter.</p>
+      </div>
+
+      <aside class="blog-sidebar">
+        <h3 class="sidebar-heading">Featured</h3>
+        {featuredSidebar.map((p) => (
+          <a href={postHref(p)} class="sidebar-card">
+            <span class="sidebar-title">{p.data.title}</span>
+            <span class="sidebar-date">{formatDate(p.data.pubDate)}</span>
+          </a>
+        ))}
+      </aside>
+    </div>
+  </section>
+</MarketingLayout>
+
+<script is:inline>
+document.addEventListener('DOMContentLoaded', function() {
+  var select = document.getElementById('blog-type-select');
+  if (!select) return;
+  var items = document.querySelectorAll('.post-grid .post-card');
+  var noResults = document.querySelector('.blog-no-results');
+
+  function applyFilter(type) {
+    var visible = 0;
+    items.forEach(function(el) {
+      var show = type === 'All' || el.getAttribute('data-type') === type;
+      el.hidden = !show;
+      if (show) visible++;
+    });
+    if (noResults) noResults.hidden = visible > 0;
+  }
+
+  try {
+    var initial = decodeURIComponent(location.hash.slice(1));
+    if (initial) {
+      var option = Array.from(select.options).find(function(o) { return o.value === initial; });
+      if (option) { select.value = initial; applyFilter(initial); }
+    }
+  } catch(e) {}
+
+  select.addEventListener('change', function() {
+    var type = select.value;
+    applyFilter(type);
+    history.replaceState(null, '', type === 'All' ? location.pathname + location.search : '#' + encodeURIComponent(type));
+  });
+});
+</script>
+
+<style>
+  .blog-index {
+    padding: 3rem 1.5rem 5rem;
+  }
+  .blog-index h1 {
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    margin: 0 0 0.5rem;
+  }
+  .lead {
+    color: var(--valkey-text-light);
+    font-size: 1.05rem;
+    max-width: 50rem;
+    margin: 0 0 2.5rem;
+  }
+  .featured {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    background: var(--valkey-bg-soft);
+    padding: 2rem;
+    border-radius: 12px;
+    margin: 2rem 0 3rem;
+    align-items: center;
+  }
+  @media (max-width: 760px) {
+    .featured {
+      grid-template-columns: 1fr;
+    }
+  }
+  .featured h2 {
+    margin: 0.5rem 0 0.75rem;
+    font-size: clamp(1.3rem, 2.3vw, 1.75rem);
+    color: var(--valkey-text);
+  }
+  .featured h2 a {
+    color: inherit;
+  }
+  .featured h2 a:hover {
+    color: var(--valkey-blue-300);
+    text-decoration: none;
+  }
+  .featured-image {
+    width: 100%;
+    border-radius: 10px;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+  }
+  .blog-content-area {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .blog-content-area {
+      grid-template-columns: 1fr;
+    }
+  }
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .section-heading {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+    margin: 0;
+  }
+  .blog-type-filters select {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--valkey-line);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: #fff;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+  .post-card {
+    border: 1px solid var(--valkey-line);
+    border-radius: 10px;
+    padding: 1.5rem;
+    background: #fff;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .post-card:hover {
+    border-color: var(--valkey-blue-100);
+    box-shadow: 0 4px 16px rgba(0, 85, 166, 0.08);
+  }
+  .post-card h3 {
+    margin: 0.5rem 0 0.5rem;
+    font-size: 1.15rem;
+  }
+  .post-card h3 a {
+    color: var(--valkey-text);
+  }
+  .post-card h3 a:hover {
+    color: var(--valkey-blue-300);
+    text-decoration: none;
+  }
+  .badge {
+    display: inline-block;
+    background: var(--valkey-purple-300);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .meta {
+    color: var(--valkey-text-light);
+    font-size: 0.85rem;
+    margin: 0.25rem 0 0.75rem;
+  }
+  .excerpt {
+    color: var(--valkey-text-light);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .read-more {
+    color: var(--valkey-blue-300);
+    font-weight: 600;
+  }
+  /* Sidebar */
+  .blog-sidebar {
+    position: sticky;
+    top: 5rem;
+  }
+  .sidebar-heading {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue);
+    margin: 0 0 1rem;
+    font-size: 1rem;
+  }
+  .sidebar-card {
+    display: block;
+    padding: 0.75rem;
+    border: 1px solid var(--valkey-line);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    text-decoration: none;
+    transition: border-color 0.15s ease;
+  }
+  .sidebar-card:hover {
+    border-color: var(--valkey-blue-100);
+  }
+  .sidebar-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--valkey-text);
+    line-height: 1.3;
+  }
+  .sidebar-date {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--valkey-text-light);
+    margin-top: 0.25rem;
+  }
+</style>

@@ -1,0 +1,83 @@
+---
+import MarketingLayout from "../../../layouts/MarketingLayout.astro";
+import NewsletterSection from "../../../components/NewsletterSection.astro";
+import {
+  parseReleases,
+  sortDesc,
+  minorVersion,
+  formatDate,
+  slug,
+} from "../../../lib/releases";
+
+const modules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
+  string,
+  { frontmatter: Record<string, any> }
+>;
+const releases = sortDesc(parseReleases(modules));
+
+// Group releases by major.minor while preserving descending order: within each
+// group members are already newest-first because the source list is sorted
+// descending by semver.
+const groupsMap = new Map<string, typeof releases>();
+for (const r of releases) {
+  const key = minorVersion(r);
+  if (!groupsMap.has(key)) groupsMap.set(key, []);
+  groupsMap.get(key)!.push(r);
+}
+
+// Sort group keys descending (9.1 > 9.0 > 8.1 > 8.0 > 7.2) to match the
+// reference /download/releases/ page, which lists the newest line first.
+const groups = [...groupsMap.entries()].sort(([a], [b]) => {
+  const [am, an] = a.split(".").map(Number);
+  const [bm, bn] = b.split(".").map(Number);
+  if (am !== bm) return bm - am;
+  return bn - an;
+});
+---
+
+<MarketingLayout title="Valkey Releases">
+  <div class="page-subhead">
+    <h1 class="page-title">Valkey Releases</h1>
+  </div>
+
+  <section class="width-limiter releases-index">
+    {groups.map(([line, lineReleases]) => (
+      <div class="release-line">
+        <h2>{line}.x</h2>
+        <ul>
+          {lineReleases.map((r) => (
+            <li>
+              <a href={`/download/releases/${slug(r)}/`}>{r.tag}</a>{" "}
+              <small>(Released {formatDate(r.date)})</small>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
+
+  <NewsletterSection />
+</MarketingLayout>
+
+<style>
+  .releases-index {
+    padding: 2rem 1.5rem 4rem;
+  }
+  .releases-index h2 {
+    font-family: var(--valkey-cond);
+    letter-spacing: 0.02em;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: var(--valkey-deep-blue);
+    margin-top: 2.5rem;
+  }
+  .releases-index ul {
+    padding-left: 1.25rem;
+    margin: 0.5rem 0 1.5rem;
+  }
+  .releases-index li {
+    margin: 0.25rem 0;
+  }
+  .releases-index small {
+    color: var(--valkey-text-light);
+  }
+</style>

@@ -1,0 +1,124 @@
+---
+import SearchOverlay from "./SearchOverlay.astro";
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === "/" ? currentPath === "/" : currentPath.startsWith(href);
+---
+
+<header class="site-header" data-pagefind-ignore>
+  <div class="inner">
+    <a href="/" class="logo" aria-label="Valkey home">
+      <img src="/img/valkey-horizontal.svg" alt="Valkey" width="130" height="46" />
+    </a>
+
+    <button
+      class="btn-menu"
+      type="button"
+      aria-label="Toggle navigation"
+      aria-expanded="false"
+      aria-controls="site-nav"
+      data-mobile-menu-toggle
+    >
+      <span></span><span></span><span></span>
+    </button>
+
+    <nav role="navigation" aria-label="Main" id="site-nav">
+      <a href="/download/" class={isActive("/download/") ? "active" : undefined}>Download</a>
+
+      <div class="has-submenu">
+        <a href="/docs/" class={isActive("/docs/") || isActive("/commands/") || isActive("/topics/") || isActive("/clients/") ? "active" : undefined}
+          >Documentation ▾</a
+        >
+        <div class="submenu">
+          <a href="/commands/">Command Reference</a>
+          <a href="/topics/">Documentation by Topic</a>
+          <a href="/clients/">Client Libraries</a>
+          <a href="/glide/">Valkey GLIDE</a>
+        </div>
+      </div>
+
+      <a href="/blog/" class={isActive("/blog/") ? "active" : undefined}>Blog</a>
+
+      <div class="has-submenu">
+        <a href="/community/" class={isActive("/community/") || isActive("/events/") ? "active" : undefined}
+          >Community ▾</a
+        >
+        <div class="submenu">
+          <a href="/events/">Events</a>
+        </div>
+      </div>
+
+      <a href="/participants/" class={isActive("/participants/") ? "active" : undefined}>Participants</a>
+      <a href="/try-valkey/" class={isActive("/try-valkey/") ? "active" : undefined}>Try Valkey</a>
+
+      <button
+        type="button"
+        class="search-trigger"
+        data-open-search
+        aria-label="Search the site"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>Search</span>
+        <kbd>⌘K</kbd>
+      </button>
+
+      <a href="https://github.com/valkey-io" class="github-button" target="_blank" rel="noopener">
+        <img src="/img/IconGithub.svg" alt="" width="16" height="16" />
+        GitHub
+        <span class="gh-stars" data-github-stars hidden></span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Search: the SearchOverlay component (mounted below) handles ⌘K and any
+  // button with [data-open-search] via a global listener — nothing to do here.
+
+  // Mobile menu toggle
+  const toggle = document.querySelector<HTMLButtonElement>("[data-mobile-menu-toggle]");
+  const nav = document.querySelector<HTMLElement>("#site-nav");
+  toggle?.addEventListener("click", () => {
+    const open = toggle.getAttribute("aria-expanded") === "true";
+    toggle.setAttribute("aria-expanded", String(!open));
+    nav?.classList.toggle("mobile-open", !open);
+  });
+
+  // GitHub stars for valkey-io/valkey, cached for 1 hour
+  (async () => {
+    const CACHE_KEY = "valkey:gh:stars";
+    const CACHE_TTL = 60 * 60 * 1000;
+    let stars: number | null = null;
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.ts && Date.now() - cached.ts < CACHE_TTL) stars = cached.v;
+      }
+    } catch {}
+    if (stars == null) {
+      try {
+        const r = await fetch("https://api.github.com/repos/valkey-io/valkey");
+        if (r.ok) {
+          const d = await r.json();
+          stars = d.stargazers_count;
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), v: stars }));
+        }
+      } catch {}
+    }
+    if (stars != null) {
+      const formatted = stars >= 1000 ? (stars / 1000).toFixed(1) + "k" : String(stars);
+      document.querySelectorAll<HTMLElement>("[data-github-stars]").forEach((el) => {
+        el.textContent = `${formatted} ★`;
+        el.hidden = false;
+      });
+    }
+  })();
+</script>
+
+<SearchOverlay />

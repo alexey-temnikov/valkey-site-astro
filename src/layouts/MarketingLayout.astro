@@ -1,0 +1,92 @@
+---
+import "../styles/valkey-brand.css";
+import AnnouncementBanner from "../components/AnnouncementBanner.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+
+export interface Props {
+  title: string;
+  description?: string;
+  bodyClass?: string;
+  image?: string;
+  noIndex?: boolean;
+}
+const {
+  title,
+  description = "Valkey is an open source (BSD) high-performance key/value datastore.",
+  bodyClass = "",
+  image = "/img/valkey-og.png",
+  noIndex = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? "http://127.0.0.1:4322").toString();
+
+// GTM id can be injected at build time via env; falls back to the valkey.io id.
+const GTM_ID = import.meta.env.PUBLIC_GTM_ID || "GTM-MFFCB7SR";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noIndex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/img/favicon.svg" />
+    <link rel="preload" href="/fonts/open-sans/opensans-latin-normal-400-v20.woff2" as="font" type="font/woff2" crossorigin />
+
+    {/* Open Graph + Twitter */}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={new URL(image, Astro.site ?? "http://127.0.0.1:4322").toString()} />
+    <meta property="og:site_name" content="Valkey" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@valkey_io" />
+
+    {/* RSS feed discovery */}
+    <link rel="alternate" type="application/rss+xml" title="Valkey Blog" href="/blog/rss.xml" />
+
+    {/* Sitemap discovery */}
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+
+    {/* Osano cookie consent */}
+    {import.meta.env.PROD && (
+      <script is:inline src="https://cmp.osano.com/16A0DbT9yDNIaQkvZ/31b1b91a-e0b6-47ea-bde2-7f2bd13dbe5c/osano.js?variant=one"></script>
+    )}
+
+    {/* Google Tag Manager (async, consent-aware) */}
+    {import.meta.env.PROD && (
+      <script is:inline define:vars={{ GTM_ID }}>{`
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s);j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer', GTM_ID);
+      `}</script>
+    )}
+  </head>
+  <body class={bodyClass}>
+    {/* Scarf analytics pixel */}
+    {import.meta.env.PROD && (
+      <img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=4682283c-f8b7-410c-9c31-c6d7944cee8b" alt="" width="0" height="0" style="position:absolute;left:-9999px" />
+    )}
+
+    {/* GTM noscript fallback */}
+    {import.meta.env.PROD && (
+      <noscript>
+        <iframe src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`} height="0" width="0" style="display:none;visibility:hidden"></iframe>
+      </noscript>
+    )}
+
+    <AnnouncementBanner />
+    <SiteHeader />
+    <main data-pagefind-body>
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>

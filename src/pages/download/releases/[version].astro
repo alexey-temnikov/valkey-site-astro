@@ -1,0 +1,54 @@
+---
+import MarketingLayout from "../../../layouts/MarketingLayout.astro";
+import ReleaseCard from "../../../components/ReleaseCard.astro";
+import NewsletterSection from "../../../components/NewsletterSection.astro";
+import { parseReleases, slug, type Release } from "../../../lib/releases";
+
+export async function getStaticPaths() {
+  const modules = import.meta.glob("/src/content/releases/*.md", { eager: true }) as Record<
+    string,
+    { frontmatter: Record<string, any> }
+  >;
+  const releases = parseReleases(modules);
+  return releases.map((release) => ({
+    params: { version: slug(release) },
+    props: { release },
+  }));
+}
+
+interface Props {
+  release: Release;
+}
+
+const { release } = Astro.props;
+---
+
+<MarketingLayout title={`Download Valkey ${release.tag} · Valkey`}>
+  <div class="page-subhead">
+    <h1 class="page-title">Download Valkey {release.tag}</h1>
+    <p class="page-subtitle">
+      Released {release.date ? new Date(release.date).toISOString().slice(0, 10) : ""}
+    </p>
+  </div>
+
+  <section class="width-limiter release-page">
+    <p class="release-page-lead">
+      <a href="/download/">← Download Latest</a> ·{" "}
+      <a href="/download/releases/">All Releases</a>
+    </p>
+
+    <ReleaseCard release={release} heading="none" />
+  </section>
+
+  <NewsletterSection />
+</MarketingLayout>
+
+<style>
+  .release-page {
+    padding: 2rem 1.5rem 4rem;
+  }
+  .release-page-lead {
+    color: var(--valkey-text-light);
+    margin: 0 0 1.5rem;
+  }
+</style>
