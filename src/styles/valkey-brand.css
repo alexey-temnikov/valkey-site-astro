@@ -243,25 +243,22 @@ starlight-menu-button + nav a[aria-current="page"],
   position: sticky;
   top: 0;
   z-index: 20;
+  /* Lock the chrome at exactly 67px across all viewports and contexts
+     (marketing-desktop, marketing-mobile, docs-desktop, docs-mobile-
+     hamburger). The .inner flex row centers within this fixed height
+     regardless of which children are present. */
+  height: 67px;
+  box-sizing: border-box;
 }
 .site-header .inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
-  /* Pin the row content to a fixed height so the header is exactly 67px
-     across every viewport / context: marketing-desktop, marketing-mobile,
-     docs-desktop, docs-mobile (hamburger). Without this lock the row is
-     sized by its tallest flex child, which varies — anchor with full font
-     ≈ 40px, anchor at clamped font ≈ 35px, search button ≈ 28px, btn-menu
-     36px, logo 40px — producing a 4-7px wobble between contexts.
-     50px row + 0.75rem * 2 padding (24px) + 1px border = 75? No: we want
-     50px row only when needed; using min/max-height: 50px for the row.
-     50px + 24px + 1px = 75px total — too tall. Use 42px row → total 67px. */
-  height: 42px;
+  height: 100%;
 }
 .site-header .logo img {
   height: 40px;
