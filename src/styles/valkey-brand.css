@@ -148,12 +148,10 @@
      its `.header` wrapper (which we neutralise via `.header:has(...)`),
      the `padding-top` of `.main-frame`, and the `padding-top` of
      `.right-sidebar` (the fixed TOC panel).
-     Default is 3.5rem (56px), sized for Starlight's slim default header.
-     Our SiteHeader is exactly 65px tall (logo 40px + .inner padding 0.75rem ×
-     2 + 1px bottom border). We pin --sl-nav-height to that exact value
-     (4.0625rem = 65px at 16px base) so that on docs pages the content
-     and TOC sit flush against our header — no 1px gap, no overlap. */
-  --sl-nav-height: 4.0625rem;
+     Our SiteHeader is locked at exactly 67px (.inner row 42px + 0.75rem × 2
+     padding (24px) + 1px bottom border). Set --sl-nav-height to match so
+     content and TOC sit flush against the header on docs pages. */
+  --sl-nav-height: 4.1875rem;
 }
 
 /* On Starlight-rendered pages our SiteHeader is mounted inside Starlight's
@@ -254,12 +252,16 @@ starlight-menu-button + nav a[aria-current="page"],
   padding: 0.75rem 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
-  /* Pin the inner content row to the logo's height so the header is exactly
-     65px tall regardless of which children are visible (logo + full nav vs
-     logo + hamburger). Eliminates any few-pixel shift between desktop and
-     hamburger states or between marketing and Starlight pages, where the
-     mix of children differs but the chrome should look identical. */
-  min-height: 40px;
+  /* Pin the row content to a fixed height so the header is exactly 67px
+     across every viewport / context: marketing-desktop, marketing-mobile,
+     docs-desktop, docs-mobile (hamburger). Without this lock the row is
+     sized by its tallest flex child, which varies — anchor with full font
+     ≈ 40px, anchor at clamped font ≈ 35px, search button ≈ 28px, btn-menu
+     36px, logo 40px — producing a 4-7px wobble between contexts.
+     50px row + 0.75rem * 2 padding (24px) + 1px border = 75? No: we want
+     50px row only when needed; using min/max-height: 50px for the row.
+     50px + 24px + 1px = 75px total — too tall. Use 42px row → total 67px. */
+  height: 42px;
 }
 .site-header .logo img {
   height: 40px;
