@@ -260,8 +260,10 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav {
   display: flex;
   align-items: center;
-  /* Fluid gap: 0.5rem at 860px → 1.5rem at 1200px. */
-  gap: clamp(0.5rem, calc(-2.0rem + 0.294vw * 1), 1.5rem);
+  /* Fluid gap: 1rem at 860px → 1.5rem at 1200px+.
+     Slope (px/px): (24-16)/(1200-860) = 0.02353 → 2.353vw.
+     Intercept (px): 24 - 0.02353 * 1200 = -4.24 → -0.265rem. */
+  gap: clamp(1rem, calc(-0.265rem + 2.353vw), 1.5rem);
   flex-wrap: nowrap;
   min-width: 0;
 }
@@ -269,13 +271,14 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav .has-submenu > a {
   color: var(--valkey-blue-300);
   font-weight: 600;
-  /* Fluid scale: 0.7rem at 860px viewport, 0.95rem at 1200px+. Below 860px
-     the hamburger media query takes over; above 1200px the clamp caps.
-     Math: slope = (0.95 - 0.7) / (1200 - 860) = 0.000735 rem/px = 0.0735rem/100px.
-     Anchor: 0.95rem at 1200px → intercept = 0.95 - 0.0735 * 12 = 0.0681rem.
-     => 0.0681rem + 0.0735vw, scaled by 100 to express vw cleanly:
-     0.0681rem + 7.35vw / 100 = 0.0681rem + 0.0735vw. We just clamp it. */
-  font-size: clamp(0.7rem, calc(0.0681rem + 0.0735vw * 1), 0.95rem);
+  /* Fluid font: 0.78rem at 860px viewport → 0.95rem at ≥1280px.
+     Slope: (0.95 - 0.78) / (1280 - 860) = 0.000405 rem/px = 0.0405rem/100px = 0.405vw / 10.
+     => 0.0405vw + intercept. At 860px: 0.78 = 0.0405 * 8.6 + b → b = 0.78 - 0.3483 = 0.4317rem.
+     The clamp caps at 0.95rem above 1280px, so wider screens keep the original size. */
+  /* Fluid font: 0.85rem at 860px → 1rem at 1200px+.
+     Slope (px/px): (16 - 13.6) / (1200 - 860) = 0.00706 → 0.706vw.
+     Intercept (px): 16 - 0.00706 * 1200 = 7.529 → 0.4706rem. */
+  font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 1rem);
   padding: 0.5rem 0;
   display: inline-flex;
   align-items: center;
@@ -680,11 +683,11 @@ starlight-menu-button + nav a[aria-current="page"],
 @media (max-width: 1200px) and (min-width: 861px) {
   .site-header nav .github-button {
     padding: 0.3rem 0.55rem;
-    font-size: clamp(0.7rem, calc(0.0681rem + 0.0735vw), 0.85rem);
+    font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 0.95rem);
   }
   .site-header .vk-search button[data-open-modal] {
     padding: 0.3rem 0.55rem;
-    font-size: clamp(0.7rem, calc(0.0681rem + 0.0735vw), 0.85rem);
+    font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 0.95rem);
   }
 }
 
