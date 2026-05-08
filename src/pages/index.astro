@@ -178,17 +178,44 @@ const metricTiles = [
               <ReleaseCard release={newestRelease} heading="none" />
             </div>
             {pastMajorReleases.length > 0 && (
-              <details class="vk-wn-past">
-                <summary>
-                  <span>Past major releases</span>
-                  <span class="past-count">
-                    {pastMajorReleases.length} older version{pastMajorReleases.length !== 1 ? "s" : ""}
+              <section class="vk-wn-past" aria-labelledby="vk-wn-past-heading">
+                <div class="vk-wn-past-head">
+                  <h3 id="vk-wn-past-heading" class="vk-wn-past-title">
+                    Latest supported version of past releases
+                  </h3>
+                  <span class="vk-wn-past-count">
+                    {pastMajorReleases.length} version{pastMajorReleases.length !== 1 ? "s" : ""}
                   </span>
-                </summary>
-                <div class="past-body">
-                  {pastMajorReleases.map((r) => <ReleaseCard release={r} heading="major" />)}
                 </div>
-              </details>
+                <ul class="vk-wn-past-list" role="list">
+                  {pastMajorReleases.map((r) => {
+                    const maj = r.tag.split(".")[0];
+                    return (
+                      <li class="vk-wn-past-item">
+                        <details>
+                          <summary>
+                            <span class="past-v-major">{maj}<span class="past-v-rest">.x.x</span></span>
+                            <span class="past-v-meta">
+                              <span class="past-v-tag">v{r.tag}</span>
+                              <span class="past-v-date">
+                                {new Date(r.date).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </span>
+                            </span>
+                            <span class="past-v-toggle" aria-hidden="true">+</span>
+                          </summary>
+                          <div class="past-v-body">
+                            <ReleaseCard release={r} heading="none" />
+                          </div>
+                        </details>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
             )}
           </article>
         )}
@@ -584,39 +611,165 @@ const metricTiles = [
   }
   .vk-wn-release-card :global(.release-section ul) { padding-left: 1.25rem; }
 
+  /* Latest supported version of past releases — always visible, compact stack */
   .vk-wn-past {
     margin-top: 1.5rem;
+    padding-top: 1.25rem;
     border-top: 1px dashed var(--valkey-line, #ccd3d6);
-    padding-top: 1.1rem;
   }
-  .vk-wn-past summary {
-    cursor: pointer;
+  .vk-wn-past-head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    align-items: baseline;
+    gap: 0.75rem;
+    margin: 0 0 0.85rem;
+  }
+  .vk-wn-past-title {
+    margin: 0;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--valkey-deep-blue, #003b5c);
+    text-transform: none;
+    line-height: 1.3;
+  }
+  .vk-wn-past-count {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 0.85rem;
-    color: var(--valkey-blue-300, #0055a6);
+    color: var(--valkey-text-light, #647782);
+    white-space: nowrap;
+  }
+  .vk-wn-past-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .vk-wn-past-item details {
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    border-radius: 8px;
+    background: var(--valkey-bg-soft, #f5f7f7);
+    overflow: hidden;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+  .vk-wn-past-item details[open] {
+    background: #fff;
+    border-color: var(--valkey-blue-100, #337ec6);
+  }
+  .vk-wn-past-item summary {
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.7rem 0.9rem;
     list-style: none;
   }
-  .vk-wn-past summary::-webkit-details-marker { display: none; }
-  .vk-wn-past summary::after {
-    content: "+";
-    font-size: 1.35em;
+  .vk-wn-past-item summary::-webkit-details-marker { display: none; }
+  .vk-wn-past-item summary:hover { background: rgba(0, 85, 166, 0.04); }
+  .past-v-major {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    font-size: 1.8rem;
     font-weight: 700;
-    transition: transform 0.2s ease;
-  }
-  .vk-wn-past[open] summary::after { content: "−"; }
-  .vk-wn-past .past-count {
-    color: var(--valkey-text-light, #647782);
-    font-weight: 400;
-    font-family: var(--valkey-sans, "Open Sans", sans-serif);
-    text-transform: none;
+    line-height: 1;
+    color: var(--valkey-purple-200, #692a84);
+    font-variant-numeric: tabular-nums;
     letter-spacing: 0;
   }
-  .vk-wn-past .past-body { margin-top: 1rem; }
+  .past-v-major .past-v-rest {
+    color: var(--valkey-purple-100, #8736aa);
+    font-size: 0.75em;
+    margin-left: 0.05em;
+  }
+  .past-v-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .past-v-tag {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.82rem;
+    color: var(--valkey-deep-blue, #003b5c);
+    font-weight: 600;
+  }
+  .past-v-date {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 0.68rem;
+    color: var(--valkey-text-light, #647782);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .past-v-toggle {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--valkey-blue-300, #0055a6);
+    width: 1.75rem;
+    height: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    background: #fff;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    line-height: 1;
+  }
+  .vk-wn-past-item details[open] .past-v-toggle {
+    transform: rotate(45deg); /* + → × */
+    background: var(--valkey-blue-300, #0055a6);
+    color: #fff;
+    border-color: var(--valkey-blue-300, #0055a6);
+  }
+  .past-v-body {
+    padding: 0 0.9rem 0.9rem;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+    background: #fff;
+  }
+  .past-v-body :global(.release-section) { margin: 0.75rem 0 0; }
+  .past-v-body :global(.release-section h4) {
+    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 0.88rem;
+    color: var(--valkey-deep-blue, #003b5c);
+    margin-top: 1rem;
+  }
+  .past-v-body :global(.release-section p) {
+    font-size: 0.85rem;
+    margin: 0.35rem 0;
+    color: var(--valkey-text, #002a3a);
+  }
+  .past-v-body :global(.release-section code) {
+    font-family: var(--valkey-mono, "Fira Mono", monospace);
+    background: var(--valkey-bg-soft, #f5f7f7);
+    border: 1px solid var(--valkey-line, #ccd3d6);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.82em;
+  }
+  .past-v-body :global(.release-section hr) {
+    margin: 0.75rem 0;
+    border: 0;
+    border-top: 1px solid var(--valkey-line, #ccd3d6);
+  }
+  .past-v-body :global(.release-section ul) {
+    padding-left: 1.1rem;
+    margin: 0.25rem 0;
+    font-size: 0.82rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vk-wn-past-item details,
+    .past-v-toggle {
+      transition: none;
+    }
+  }
 
   /* Performance + blog stacked right column */
   .vk-wn-side {
