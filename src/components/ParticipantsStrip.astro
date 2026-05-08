@@ -125,12 +125,11 @@ function blurb(p: Participant): string {
   }
   .vk-pts-title {
     margin: 0 0 1rem;
-    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif);
+    letter-spacing: -0.01em;
     color: #fff;
-    font-size: clamp(2.25rem, 5vw, 4rem);
-    line-height: 1.05;
+    font-size: clamp(2rem, 4.5vw, 3.75rem);
+    line-height: 1.1;
     font-weight: 700;
   }
   .vk-pts-lead {
@@ -184,10 +183,11 @@ function blurb(p: Participant): string {
     opacity: 1;
   }
   .vk-pts-name {
-    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif) !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.02em !important;
-    font-size: 1.15rem !important;
+    font-family: var(--valkey-sans, "Open Sans", sans-serif) !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
     color: var(--valkey-deep-blue, #003b5c) !important;
   }
   .vk-pts-offering {
