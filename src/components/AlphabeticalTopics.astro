@@ -1,0 +1,99 @@
+---
+// AlphabeticalTopics.astro — renders the docs/topics collection as a dense
+// alphabetical index. Drop-in inside the /topics/ Starlight page (MDX) to
+// mirror valkey.io's "Alphabetical Index" section, while keeping the
+// sidebar nav as the primary navigation affordance.
+import { getCollection } from "astro:content";
+
+const docs = await getCollection("docs");
+const topics = docs
+  .filter((d) => d.id.startsWith("topics/") && d.id !== "topics/index")
+  .map((d) => {
+    const slug = d.id.replace(/^topics\//, "");
+    const title =
+      (d.data as any).title ??
+      slug.replace(/-/g, " ");
+    const description =
+      (d.data as any).description ?? "";
+    return {
+      title: String(title),
+      href: `/topics/${slug}/`,
+      description: String(description).trim(),
+    };
+  })
+  .sort((a, b) => a.title.localeCompare(b.title, "en", { sensitivity: "base" }));
+---
+
+<section class="alphabetical-topics" aria-labelledby="alphabetical-topics-title">
+  <p class="alphabetical-topics__note">
+    Every topic on this site, sorted alphabetically. Use the sidebar for
+    category-grouped navigation, or scan this list for quick lookup.
+  </p>
+  <ul class="alphabetical-topics__list" role="list">
+    {topics.map((t) => (
+      <li class="alphabetical-topics__item">
+        <a href={t.href}>
+          <span class="alphabetical-topics__title">{t.title}</span>
+          {t.description && (
+            <span class="alphabetical-topics__description">{t.description}</span>
+          )}
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .alphabetical-topics {
+    margin-top: 1rem;
+  }
+  .alphabetical-topics__note {
+    color: var(--sl-color-text-accent, var(--valkey-text-light));
+    font-size: 0.92rem;
+    margin-bottom: 1.25rem;
+  }
+  .alphabetical-topics__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* Two-column dense grid on wider viewports — keeps scanability while
+       allowing the list to breathe. */
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.3rem 1.5rem;
+  }
+  @media (min-width: 900px) {
+    .alphabetical-topics__list {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .alphabetical-topics__item {
+    line-height: 1.45;
+    padding: 0.35rem 0;
+    border-bottom: 1px dotted color-mix(in srgb, var(--valkey-line) 70%, transparent);
+  }
+  .alphabetical-topics__item a {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+  }
+  .alphabetical-topics__title {
+    font-family: var(--valkey-cond);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--valkey-deep-blue);
+    transition: color 0.18s ease;
+  }
+  .alphabetical-topics__item a:hover .alphabetical-topics__title {
+    color: var(--valkey-blue-300);
+  }
+  .alphabetical-topics__description {
+    font-size: 0.82rem;
+    color: var(--valkey-text-light);
+    line-height: 1.4;
+  }
+</style>

@@ -1,5 +1,6 @@
 ---
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
+import AuthorBios from "../../components/AuthorBios.astro";
 import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
@@ -35,9 +36,17 @@ function postSlug(p: any) {
   return p.data.slug ?? p.id.replace(/^\d{4}-\d{2}-\d{2}-/, "");
 }
 
-// TODO: When src/content/authors collection is created, import and look up
-// author full names here. For now, display the handle as-is.
-const authors = post.data.authors ?? [];
+// Resolve author handles to real names for the top-of-post byline. Each
+// author has a canonical record in the `authors` content collection; we
+// fall back to the handle if the record is missing so the post still
+// renders.
+const handles: string[] = post.data.authors ?? [];
+const allAuthors = await getCollection("authors");
+const nameByHandle = new Map(allAuthors.map((a) => [a.id, a.data.name]));
+const resolvedAuthors = handles.map((h) => ({
+  handle: h,
+  name: nameByHandle.get(h) ?? h,
+}));
 
 const pageUrl = `${Astro.site ?? "https://valkey.io"}${Astro.url.pathname}`;
 const shareTitle = encodeURIComponent(post.data.title);
@@ -64,14 +73,13 @@ const shareUrl = encodeURIComponent(pageUrl);
       <p class="meta">{formatDate(post.data.pubDate)}</p>
     </header>
 
-    {authors.length > 0 && (
+    {resolvedAuthors.length > 0 && (
       <div class="author-block">
         <span class="author-label">By</span>
-        {authors.map((handle: string, i: number) => (
+        {resolvedAuthors.map(({ handle, name }, i: number) => (
           <>
-            {/* TODO: look up full name from authors collection when available */}
-            <span class="author-name">{handle}</span>
-            {i < authors.length - 1 && <span class="author-sep">, </span>}
+            <a class="author-name" href={`/authors/${handle}/`}>{name}</a>
+            {i < resolvedAuthors.length - 1 && <span class="author-sep">, </span>}
           </>
         ))}
       </div>
@@ -80,6 +88,8 @@ const shareUrl = encodeURIComponent(pageUrl);
     <div class="prose">
       <Content />
     </div>
+
+    <AuthorBios authors={handles} />
 
     <div class="share-links">
       <span class="share-label">Share on:</span>
@@ -178,6 +188,13 @@ const shareUrl = encodeURIComponent(pageUrl);
   .author-name {
     font-weight: 600;
     color: var(--valkey-text);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom-color 0.2s ease, color 0.2s ease;
+  }
+  a.author-name:hover {
+    color: var(--valkey-blue-300);
+    border-bottom-color: currentColor;
   }
   .prose {
     line-height: 1.7;

@@ -1,0 +1,417 @@
+---
+/**
+ * AuthorBios.astro — Editorial "About the authors" section for blog posts.
+ *
+ * Design: restrained editorial masthead. Serif italic section title
+ * ("About the authors") paired with a condensed uppercase eyebrow
+ * ("Contributors to this piece"). Photos offset into the outer gutter as
+ * 120px circles with a pacific-sky ring that shifts to purple on hover.
+ * Author names render as Noto Serif (1.5rem) for a byline register that
+ * contrasts the sans body prose. Handles in Fira Mono.
+ *
+ * Data flow: the blog post frontmatter stores `authors: ["handle1", ...]`.
+ * This component resolves each handle against the `authors` content
+ * collection (name + photo + github + tsc + markdown bio) and renders a
+ * stack of author panels.
+ *
+ * Mirrors the parity of valkey.io's Zola `templates/includes/author_panel.html`
+ * (name, github link, bio) while adding a cohesive aesthetic upgrade.
+ */
+import { getCollection, render, type CollectionEntry } from "astro:content";
+
+interface Props {
+  /** Author handles (content-collection IDs under src/content/authors/). */
+  authors: string[];
+}
+
+const { authors } = Astro.props;
+
+// Resolve collection once per component invocation. The collection is small
+// (≈54 entries), so filtering in-memory is cheap. Unknown handles are
+// silently skipped rather than failing the build — a blog post can still
+// publish if an author record hasn't landed yet.
+const allAuthors = await getCollection("authors");
+const byId = new Map(allAuthors.map((a) => [a.id, a]));
+
+type ResolvedAuthor = {
+  entry: CollectionEntry<"authors">;
+  Content: any;
+};
+
+const resolved: ResolvedAuthor[] = [];
+for (const handle of authors ?? []) {
+  const entry = byId.get(handle);
+  if (!entry) continue;
+  const { Content } = await render(entry);
+  resolved.push({ entry, Content });
+}
+---
+
+{resolved.length > 0 && (
+  <section class="author-bios" aria-labelledby="about-authors">
+    <header class="author-bios__head">
+      <p class="author-bios__eyebrow">Contributors to this piece</p>
+      <h2 id="about-authors" class="author-bios__title">
+        <span aria-hidden="true" class="author-bios__mark">
+          {/* Hand-placed geometric glyph — deliberate signature moment. */}
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.5" />
+            <path d="M5 12h14M12 5v14" />
+          </svg>
+        </span>
+        About the authors
+      </h2>
+      <div class="author-bios__rule" aria-hidden="true"></div>
+    </header>
+
+    <ol class="author-bios__list" role="list">
+      {resolved.map(({ entry, Content }, i) => {
+        const { name, photo, github, tsc } = entry.data;
+        return (
+          <li
+            class="author-bio"
+            style={`--i: ${i};`}
+            data-index={i}
+          >
+            <div class="author-bio__photo-wrap">
+              {photo ? (
+                <img
+                  class="author-bio__photo"
+                  src={photo}
+                  alt={`Portrait of ${name}`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <div class="author-bio__photo author-bio__photo--empty" aria-hidden="true">
+                  {name
+                    .split(" ")
+                    .map((p) => p[0])
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .join("")}
+                </div>
+              )}
+            </div>
+
+            <div class="author-bio__body">
+              <div class="author-bio__heading">
+                <h3 class="author-bio__name">
+                  <a href={`/authors/${entry.id}/`}>{name}</a>
+                </h3>
+                {tsc && (
+                  <span class="author-bio__tsc" title="Technical Steering Committee member">
+                    <span aria-hidden="true">◆</span>
+                    TSC{tsc.position ? ` · ${tsc.position}` : ""}
+                    {tsc.affiliation ? ` · ${tsc.affiliation}` : ""}
+                  </span>
+                )}
+              </div>
+
+              {github && (
+                <p class="author-bio__handle">
+                  <a
+                    href={`https://github.com/${github}`}
+                    target="_blank"
+                    rel="noopener"
+                    aria-label={`${name} on GitHub`}
+                  >
+                    <span aria-hidden="true" class="author-bio__at">@</span>{github}
+                  </a>
+                </p>
+              )}
+
+              <div class="author-bio__text">
+                <Content />
+              </div>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+)}
+
+<style>
+  /* Scoped to the component — does not leak into prose above. */
+  .author-bios {
+    margin: 4rem 0 2rem;
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--valkey-line);
+    /* Generous rag-right text column width so photos can break into the
+       gutter on wide screens without colliding with body prose. */
+    max-width: 820px;
+  }
+
+  .author-bios__head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.15rem 1rem;
+    align-items: baseline;
+    margin-bottom: 2.5rem;
+  }
+
+  .author-bios__eyebrow {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-family: var(--valkey-cond);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--valkey-purple-200);
+    font-weight: 700;
+  }
+
+  .author-bios__title {
+    grid-column: 1 / -1;
+    margin: 0.1rem 0 0;
+    font-family: var(--valkey-serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+    line-height: 1.05;
+    color: var(--valkey-deep-blue);
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .author-bios__mark {
+    display: inline-flex;
+    color: var(--valkey-blue-300);
+    transform: translateY(1px) rotate(-12deg);
+    transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1.1);
+  }
+  .author-bios:hover .author-bios__mark {
+    transform: translateY(1px) rotate(32deg);
+  }
+
+  .author-bios__rule {
+    grid-column: 1 / -1;
+    height: 1px;
+    margin-top: 1.25rem;
+    background: linear-gradient(
+      to right,
+      var(--valkey-deep-blue) 0,
+      var(--valkey-deep-blue) 4rem,
+      transparent 4rem,
+      transparent 100%
+    );
+  }
+
+  /* List of authors. Reset ol chrome because role="list" carries semantics. */
+  .author-bios__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  /* Each bio: asymmetric two-column layout on desktop; photo first, bio text
+     wraps beside it. Photo breaks ~20px into the left gutter on wider
+     viewports to create a deliberate off-grid moment. */
+  .author-bio {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    gap: 1.75rem;
+    align-items: start;
+
+    /* Entrance animation. Offsets use --i to stagger per author. */
+    opacity: 0;
+    transform: translateY(14px);
+    animation: authorBioReveal 0.7s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+    animation-delay: calc(var(--i, 0) * 120ms + 80ms);
+  }
+
+  @keyframes authorBioReveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Slight negative margin on every other author pushes it ~22px into the
+     gutter — breaks the otherwise-rigid column rhythm. Only on wider
+     viewports so it never causes overflow on mobile. */
+  @media (min-width: 860px) {
+    .author-bio:nth-child(even) {
+      margin-left: -22px;
+    }
+  }
+
+  .author-bio__photo-wrap {
+    position: relative;
+    width: 140px;
+    height: 140px;
+  }
+  .author-bio__photo-wrap::before {
+    /* The pacific-sky ring. Sits behind the photo, rotates out on hover. */
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 3px solid var(--valkey-pacific-sky);
+    transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1),
+                border-color 0.4s ease;
+    pointer-events: none;
+  }
+  .author-bio__photo-wrap:hover::before {
+    transform: rotate(9deg) scale(1.03);
+    border-color: var(--valkey-purple-100);
+  }
+
+  .author-bio__photo {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    background: var(--valkey-bg-soft);
+    /* A subtle grayscale dial-back until hover — evokes editorial portrait
+       plates. Kept very subtle so the photo is still recognizable. */
+    filter: saturate(0.85);
+    transition: filter 0.5s ease, transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+  .author-bio__photo-wrap:hover .author-bio__photo {
+    filter: saturate(1);
+    transform: scale(1.02);
+  }
+
+  .author-bio__photo--empty {
+    display: grid;
+    place-items: center;
+    font-family: var(--valkey-cond);
+    font-size: 2.2rem;
+    letter-spacing: 0.08em;
+    color: var(--valkey-deep-blue);
+    background: var(--valkey-pacific-sky);
+    text-transform: uppercase;
+  }
+
+  .author-bio__body {
+    min-width: 0; /* let text wrap properly in the grid */
+  }
+
+  .author-bio__heading {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  .author-bio__name {
+    margin: 0;
+    font-family: var(--valkey-serif);
+    font-weight: 400;
+    font-size: clamp(1.35rem, 2.3vw, 1.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.005em;
+    color: var(--valkey-deep-blue);
+  }
+  .author-bio__name a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.25s ease, color 0.25s ease;
+  }
+  .author-bio__name a:hover {
+    color: var(--valkey-blue-300);
+    border-bottom-color: currentColor;
+  }
+
+  .author-bio__tsc {
+    font-family: var(--valkey-cond);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--valkey-purple-200);
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--valkey-purple-200) 35%, transparent);
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .author-bio__tsc > span[aria-hidden] {
+    color: var(--valkey-purple-100);
+    margin-right: 0.25rem;
+  }
+
+  .author-bio__handle {
+    margin: 0 0 0.75rem;
+    font-family: var(--valkey-mono);
+    font-size: 0.82rem;
+  }
+  .author-bio__handle a {
+    color: var(--valkey-blue-300);
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--valkey-blue-300) 40%, transparent);
+    transition: color 0.25s ease, border-bottom-color 0.25s ease;
+  }
+  .author-bio__handle a:hover {
+    color: var(--valkey-purple-200);
+    border-bottom-color: currentColor;
+  }
+  .author-bio__at {
+    color: var(--valkey-text-light);
+    margin-right: 0.05em;
+  }
+
+  .author-bio__text {
+    color: var(--valkey-text);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  .author-bio__text :global(p) {
+    margin: 0 0 0.75rem;
+  }
+  .author-bio__text :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .author-bio__text :global(a) {
+    color: var(--valkey-blue-300);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--valkey-blue-300) 35%, transparent);
+    transition: border-bottom-color 0.25s ease;
+  }
+  .author-bio__text :global(a:hover) {
+    border-bottom-color: currentColor;
+  }
+
+  /* --- Responsive: mobile stacks photo above text, removes gutter break --- */
+  @media (max-width: 640px) {
+    .author-bio {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .author-bio:nth-child(even) {
+      margin-left: 0;
+    }
+    .author-bio__photo-wrap,
+    .author-bio__photo {
+      width: 96px;
+      height: 96px;
+    }
+    .author-bios__head {
+      margin-bottom: 2rem;
+    }
+  }
+
+  /* Honor reduced-motion preferences fully. */
+  @media (prefers-reduced-motion: reduce) {
+    .author-bio {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+    .author-bios__mark,
+    .author-bio__photo,
+    .author-bio__photo-wrap::before {
+      transition: none;
+    }
+  }
+</style>
