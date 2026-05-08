@@ -260,7 +260,8 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  /* Fluid gap: 0.5rem at 860px → 1.5rem at 1200px. */
+  gap: clamp(0.5rem, calc(-2.0rem + 0.294vw * 1), 1.5rem);
   flex-wrap: nowrap;
   min-width: 0;
 }
@@ -268,11 +269,18 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav .has-submenu > a {
   color: var(--valkey-blue-300);
   font-weight: 600;
-  font-size: 0.95rem;
+  /* Fluid scale: 0.7rem at 860px viewport, 0.95rem at 1200px+. Below 860px
+     the hamburger media query takes over; above 1200px the clamp caps.
+     Math: slope = (0.95 - 0.7) / (1200 - 860) = 0.000735 rem/px = 0.0735rem/100px.
+     Anchor: 0.95rem at 1200px → intercept = 0.95 - 0.0735 * 12 = 0.0681rem.
+     => 0.0681rem + 0.0735vw, scaled by 100 to express vw cleanly:
+     0.0681rem + 7.35vw / 100 = 0.0681rem + 0.0735vw. We just clamp it. */
+  font-size: clamp(0.7rem, calc(0.0681rem + 0.0735vw * 1), 0.95rem);
   padding: 0.5rem 0;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  white-space: nowrap;
 }
 .site-header nav > a.active,
 .site-header nav .has-submenu > a.active {
@@ -667,42 +675,21 @@ starlight-menu-button + nav a[aria-current="page"],
   display: inline;
 }
 
-/* Squeeze the nav between the wide layout and the mobile breakpoint. The
-   logo + 7 nav items + GitHub button at default sizes (font 0.95rem, gap
-   1.5rem) overflow around ~1100px and items wrap onto a second line.
-   Tighten font and gap progressively so everything stays on one row down
-   to 860px, where the hamburger takes over. */
+/* Compact GitHub pill + search button between hamburger and full-width
+   layouts. Font on the nav anchors is already fluid via clamp() above. */
 @media (max-width: 1200px) and (min-width: 861px) {
-  .site-header nav {
-    gap: 0.85rem;
-  }
-  .site-header nav > a,
-  .site-header nav .has-submenu > a {
-    font-size: 0.78rem;
-  }
   .site-header nav .github-button {
     padding: 0.3rem 0.55rem;
-    font-size: 0.78rem;
+    font-size: clamp(0.7rem, calc(0.0681rem + 0.0735vw), 0.85rem);
   }
   .site-header .vk-search button[data-open-modal] {
     padding: 0.3rem 0.55rem;
-    font-size: 0.75rem;
+    font-size: clamp(0.7rem, calc(0.0681rem + 0.0735vw), 0.85rem);
   }
 }
 
-/* Even tighter between 861-960px: drop the search kbd hint and tighten
-   gap/font further so all 7 nav items still fit. */
-@media (max-width: 960px) and (min-width: 861px) {
-  .site-header nav {
-    gap: 0.6rem;
-  }
-  .site-header nav > a,
-  .site-header nav .has-submenu > a {
-    font-size: 0.72rem;
-  }
-  .site-header nav .github-button {
-    font-size: 0.72rem;
-  }
+/* Hide the ⌘K kbd hint earlier — it's not essential and saves ~3rem. */
+@media (max-width: 1080px) and (min-width: 861px) {
   .site-header .vk-search button[data-open-modal] > kbd {
     display: none;
   }
