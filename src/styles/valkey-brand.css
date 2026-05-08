@@ -254,6 +254,12 @@ starlight-menu-button + nav a[aria-current="page"],
   padding: 0.75rem 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
+  /* Pin the inner content row to the logo's height so the header is exactly
+     65px tall regardless of which children are visible (logo + full nav vs
+     logo + hamburger). Eliminates any few-pixel shift between desktop and
+     hamburger states or between marketing and Starlight pages, where the
+     mix of children differs but the chrome should look identical. */
+  min-height: 40px;
 }
 .site-header .logo img {
   height: 40px;
