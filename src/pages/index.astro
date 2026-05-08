@@ -18,9 +18,7 @@
  */
 import MarketingLayout from "../layouts/MarketingLayout.astro";
 import ReleaseCard from "../components/ReleaseCard.astro";
-import ValkeyTerminal from "../components/ValkeyTerminal.astro";
 import HeroMetrics from "../components/HeroMetrics.astro";
-import DocDirectory from "../components/DocDirectory.astro";
 import ParticipantsStrip from "../components/ParticipantsStrip.astro";
 import { parseReleases, latestPerMajor } from "../lib/releases";
 import { dashboards as perfDashboards } from "../data/perf";
@@ -115,8 +113,9 @@ const metricTiles = [
 
 <MarketingLayout title="Valkey" bodyClass="homepage">
   {/* ================================================================
-      HERO — keeps the original valkey.io hero background, adds a
-      terminal alongside and a metrics instrument strip below.
+      HERO — centered, matches the original valkey.io structure.
+      Background: #30186e + img/hero-bg.webp + rgba(48,24,110,0.15→0.75).
+      A small instrument strip sits below the hero copy.
       ================================================================ */}
   <section class="vk-hero">
     <div class="vk-hero-inner">
@@ -140,13 +139,9 @@ const metricTiles = [
           </a>
         </div>
       </div>
-
-      <aside class="vk-hero-terminal-wrap" aria-label="Valkey command demonstration">
-        <ValkeyTerminal />
-      </aside>
     </div>
 
-    {/* Instrument strip */}
+    {/* Instrument strip — lives inside the hero region, below the copy */}
     <div class="vk-hero-metrics-wrap">
       <HeroMetrics tiles={metricTiles} />
     </div>
@@ -387,20 +382,17 @@ const metricTiles = [
   .vk-hero-inner {
     position: relative;
     z-index: 1;
-    max-width: 1200px;
+    max-width: 960px;
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-    padding: 3rem 0 4rem;
+    padding: 4rem 0 4rem;
+    text-align: center;
   }
 
-  .vk-hero-copy { text-align: left; }
+  .vk-hero-copy { text-align: center; }
   .vk-hero-heading {
     font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
     font-weight: 700;
-    font-size: clamp(3rem, 6.5vw, 5.75rem);
+    font-size: clamp(3rem, 8.5vw, 6.75rem);
     line-height: 1;
     letter-spacing: 0.04em;
     margin: 0;
@@ -409,16 +401,17 @@ const metricTiles = [
   }
   .vk-hero-heading + .vk-hero-heading { margin-top: 0.25rem; }
   .vk-hero-subtitle {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     font-weight: 400;
-    line-height: 1.6;
-    max-width: 38rem;
-    margin: 1.75rem 0 2.25rem;
-    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.65;
+    max-width: 50rem;
+    margin: 2rem auto 2.5rem;
+    color: rgba(255, 255, 255, 0.92);
   }
   .vk-hero-ctas {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 1.5rem;
     flex-wrap: wrap;
   }
@@ -460,9 +453,7 @@ const metricTiles = [
     border-color: #fff;
     gap: 0.75rem;
   }
-  .vk-hero-terminal-wrap {
-    position: relative;
-  }
+  .vk-hero-terminal-wrap { display: none; }
 
   /* Instrument strip — lives just below the hero content, above the
      section-boundary fade, in the original purple context. */
@@ -476,14 +467,9 @@ const metricTiles = [
 
   @media (max-width: 960px) {
     .vk-hero-inner {
-      grid-template-columns: 1fr;
-      gap: 3rem;
-      padding: 2rem 0 3rem;
-      align-items: start;
+      padding: 2.5rem 0 3rem;
     }
-    .vk-hero-copy { text-align: center; }
     .vk-hero-subtitle { margin-left: auto; margin-right: auto; }
-    .vk-hero-ctas { justify-content: center; }
   }
   @media (max-width: 560px) {
     .vk-hero { padding: 3rem 1rem 0; }
