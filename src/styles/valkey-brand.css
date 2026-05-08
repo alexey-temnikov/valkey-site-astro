@@ -337,6 +337,12 @@ starlight-menu-button + nav a[aria-current="page"],
   background: var(--valkey-bg-soft);
   text-decoration: none;
 }
+/* The "GitHub" text label inside the pill — hidden via .gh-text class so we
+   can collapse the pill to icon+stars on narrower viewports without breaking
+   accessibility (icon retains aria-label on the anchor). */
+.site-header nav .github-button .gh-text {
+  display: inline;
+}
 
 /* -------- Search trigger (Starlight Search reused on every page) --------
    The trigger is a `<site-search class="vk-search">` rendered by
@@ -704,6 +710,22 @@ starlight-menu-button + nav a[aria-current="page"],
 /* Hide the ⌘K kbd hint earlier — it's not essential and saves ~3rem. */
 @media (max-width: 1080px) and (min-width: 861px) {
   .site-header .vk-search button[data-open-modal] > kbd {
+    display: none;
+  }
+}
+
+/* Below 1024px, drop the "GitHub" text inside the pill — the icon plus
+   stars badge are unambiguous, and this saves ~60-70px of header width. */
+@media (max-width: 1024px) and (min-width: 861px) {
+  .site-header nav .github-button .gh-text {
+    display: none;
+  }
+}
+
+/* Below 940px, drop the stars badge entirely — at this width every saved
+   pixel matters and the badge text + border was the next biggest item. */
+@media (max-width: 940px) and (min-width: 861px) {
+  .site-header nav .github-button .gh-stars {
     display: none;
   }
 }
