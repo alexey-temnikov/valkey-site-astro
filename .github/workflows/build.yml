@@ -3,12 +3,10 @@
 # Goals:
 # 1. Verify `pnpm install` resolves and `pnpm build` succeeds on every
 #    push to main and every PR against main.
-# 2. Handle the `public/glide` symlink gracefully. In the local author's
-#    workspace this points at a sibling checkout of `valkey-io.github.io`
-#    which provides the pre-built GLIDE docs. On CI that path does not
-#    exist, so we detach the symlink and substitute an empty placeholder
-#    before building. Result: GLIDE pages 404 in CI builds but every other
-#    page builds cleanly.
+# 2. Build GLIDE docs from source (valkey-io/valkey-glide-docs) with
+#    base: '/glide/' and place the output into public/glide/ so it is
+#    served under the /glide/ prefix. Falls back to a placeholder if
+#    the checkout fails.
 # 3. Commands and topics need content from the `valkey-doc` sibling repo
 #    plus the four product repos (valkey, valkey-bloom, valkey-json,
 #    valkey-search) — checked out alongside this repo at build time.
@@ -39,7 +37,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     # `PROJECT_ROOT` is the workspace root; the Astro site lives inside it.
     # We check out additional peer repos next to PROJECT_ROOT so the build's
@@ -96,33 +94,13 @@ jobs:
           ref: unstable
         continue-on-error: true
 
-      - name: Checkout valkey-io.github.io (sibling — provides the prebuilt GLIDE bundle)
-        # The `public/glide` symlink resolves to `../../valkey-io.github.io/static/glide`,
-        # which is the prebuilt Starlight bundle for Valkey GLIDE docs. Checking the
-        # repo out next to ours makes the symlink resolve at build time so /glide/* is
-        # served from the real bundle instead of the placeholder.
+      - name: Checkout valkey-glide-docs (source for GLIDE docs)
         uses: actions/checkout@v4
         with:
-          repository: valkey-io/valkey-io.github.io
-          path: valkey-io.github.io
+          repository: valkey-io/valkey-glide-docs
+          path: valkey-glide-docs
           ref: main
         continue-on-error: true
-
-      - name: Detach broken glide symlink (CI has no sibling glide bundle)
-        # If the `public/glide` symlink target is missing (sibling
-        # valkey-io.github.io checkout is not present), remove the symlink
-        # and create an empty directory so `astro build` doesn't fail when
-        # copying public/. The resulting site will 404 on /glide/* — not a
-        # regression for CI, since we only run parity checks there.
-        run: |
-          set -eux
-          cd "$PROJECT_ROOT/public"
-          if [ -L glide ] && [ ! -e glide ]; then
-            echo "Removing dangling glide symlink"
-            rm glide
-            mkdir glide
-            echo "<!doctype html><title>GLIDE docs placeholder</title><p>GLIDE docs are not included in this build.</p>" > glide/index.html
-          fi
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -133,10 +111,32 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Astro 6 requires Node >= 22.12.
           node-version: 22
           cache: pnpm
           cache-dependency-path: ${{ env.PROJECT_ROOT }}/pnpm-lock.yaml
+
+      - name: Build GLIDE docs and wire into public/glide
+        # Build the GLIDE Starlight site with base: '/glide/' so all asset
+        # paths are correct when served under the /glide/ prefix. Replace
+        # the dangling symlink with the real build output.
+        run: |
+          set -eux
+          cd "$PROJECT_ROOT/public"
+          # Remove the symlink regardless of whether it resolves
+          rm -f glide
+
+          if [ -d "$GITHUB_WORKSPACE/valkey-glide-docs/src" ]; then
+            cd "$GITHUB_WORKSPACE/valkey-glide-docs"
+            # Inject base path for sub-path hosting
+            sed -i '/^  site:/a\  base: "/glide/",' astro.config.mjs
+            pnpm install --frozen-lockfile
+            pnpm build
+            mv dist "$GITHUB_WORKSPACE/$PROJECT_ROOT/public/glide"
+          else
+            echo "valkey-glide-docs checkout failed; creating placeholder"
+            mkdir glide
+            echo '<!doctype html><title>GLIDE docs placeholder</title><p>GLIDE docs are not included in this build.</p>' > glide/index.html
+          fi
 
       - name: pnpm install
         working-directory: ${{ env.PROJECT_ROOT }}
