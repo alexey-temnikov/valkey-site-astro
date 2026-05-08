@@ -330,6 +330,8 @@ starlight-menu-button + nav a[aria-current="page"],
   padding: 0.4rem 0.75rem;
   border-radius: 6px;
   color: var(--valkey-text);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .site-header nav .github-button:hover {
   background: var(--valkey-bg-soft);
@@ -558,9 +560,10 @@ starlight-menu-button + nav a[aria-current="page"],
   margin: 1rem 0;
 }
 
-/* -------- GitHub stars badge -------- */
+/* -------- GitHub stars badge --------
+   No margin-left: the parent .github-button is `display: inline-flex` with
+   gap: 0.5rem already, so an extra margin-left would compound the spacing. */
 .gh-stars {
-  margin-left: 0.35rem;
   padding: 0.1rem 0.4rem;
   background: var(--valkey-bg-soft);
   border: 1px solid var(--valkey-line);
@@ -568,6 +571,8 @@ starlight-menu-button + nav a[aria-current="page"],
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--valkey-text);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* -------- Hamburger for mobile -------- */
@@ -683,7 +688,12 @@ starlight-menu-button + nav a[aria-current="page"],
 @media (max-width: 1200px) and (min-width: 861px) {
   .site-header nav .github-button {
     padding: 0.3rem 0.55rem;
+    gap: 0.35rem;
     font-size: clamp(0.85rem, calc(0.471rem + 0.706vw), 0.95rem);
+  }
+  .site-header nav .github-button .gh-stars {
+    font-size: 0.7rem;
+    padding: 0.05rem 0.35rem;
   }
   .site-header .vk-search button[data-open-modal] {
     padding: 0.3rem 0.55rem;
