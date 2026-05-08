@@ -188,6 +188,22 @@ function blurb(p: Participant): string {
     filter: grayscale(0%);
     opacity: 1;
   }
+
+  /* Dark mode: the card surface is near-black, and most vendor logos are
+     dark-text on transparent — the grayscale+low-opacity treatment makes
+     them effectively invisible. Paint a small white backplate behind the
+     logo and drop the dimming filter so the original artwork reads. The
+     full-color hover state still applies. Light mode is untouched. */
+  :global(html[data-theme="dark"]) .vk-pts .vk-pts-img-wrap {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    min-height: 56px;
+  }
+  :global(html[data-theme="dark"]) .vk-pts .vk-pts-img {
+    filter: none;
+    opacity: 1;
+  }
   .vk-pts .homepage-participants-carousel .homepage-participant-card .vk-pts-name {
     font-family: var(--valkey-sans, "Open Sans", sans-serif);
     font-size: 1.1rem;
