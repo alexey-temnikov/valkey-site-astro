@@ -144,13 +144,25 @@
   --sl-font-system-mono: var(--valkey-mono);
   --__sl-font: var(--valkey-sans);
 
-  /* `--sl-nav-height` is used by Starlight's right-sidebar TOC as the top
-     inset under the sticky header (`padding-top` on a `position: fixed`
-     panel). Default is 3.5rem (56px) — too short for our SiteHeader,
-     which is ~65px (logo 40px + .inner padding 0.75rem × 2 + 1px border).
-     Set it to match so the TOC's first item doesn't render under the
-     header on /topics/ and other Starlight pages. */
-  --sl-nav-height: 4.25rem;
+  /* `--sl-nav-height` is used by Starlight in three places: the height of
+     its `.header` wrapper, the `padding-top` of `.main-frame`, and the
+     `padding-top` of `.right-sidebar` (the fixed TOC panel). Default is
+     3.5rem (56px), sized for Starlight's slim default header. Our
+     SiteHeader is 65px tall (logo 40px + .inner padding 0.75rem × 2 +
+     1px border). Set this to match so content/TOC start exactly under
+     our header on /topics/ etc. */
+  --sl-nav-height: 4.125rem;
+}
+
+/* On Starlight-rendered pages our SiteHeader is mounted inside Starlight's
+   own `<header class="header">` wrapper (PageFrame.astro:8). That wrapper
+   adds its own padding, background, and border. Make it a transparent
+   pass-through so our SiteHeader is the only chrome. */
+.header:has(.site-header) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  height: auto;
 }
 
 :root[data-theme="light"] {
