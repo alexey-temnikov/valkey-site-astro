@@ -310,12 +310,22 @@
 }
 
 /* -------- Global marketing styles -------- */
+/* Prevent stray horizontal scroll caused by descendant elements that overflow
+   slightly (negative margins on author bios, full-bleed sections, fluid
+   clamp() math under-shooting at edge widths). `overflow-x: clip` clips the
+   overflow without creating a scroll container — so `position: sticky` on
+   .site-header and Starlight's right-sidebar TOC keeps working. */
+html {
+  overflow-x: clip;
+}
+
 body {
   font-family: var(--valkey-sans);
   color: var(--valkey-text);
   background: var(--valkey-bg);
   margin: 0;
   transition: var(--valkey-theme-transition);
+  overflow-x: clip;
 }
 
 a {
