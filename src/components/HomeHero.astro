@@ -211,36 +211,45 @@ const metricTiles = [
   /* --------------------------------------------------------------------
      Easter egg: "Aurora".
      Triggered by toggling the theme 6 times within 3 seconds (handled in
-     SiteHeader.astro). When unlocked, html.vk-aurora is set and the hero
-     gradient drifts slowly through the brand palette. Stays on for the
-     rest of the session; a reload resets it.
-     -------------------------------------------------------------------- */
-  :where(html.vk-aurora) .vk-hero {
-    background:
-      var(--valkey-section-hero-overlay),
-      url("/img/hero-bg.webp") right center / cover no-repeat,
-      linear-gradient(
-        135deg,
-        var(--valkey-purple-300) 0%,
-        var(--valkey-purple-200) 25%,
-        #4257b3 50%,
-        var(--valkey-blue-200) 75%,
-        var(--valkey-purple-300) 100%
-      );
-    background-size: auto, auto, 400% 400%;
-    animation: vk-aurora-drift 24s ease-in-out infinite;
+     SiteHeader.astro). When unlocked, html.vk-aurora is set and a
+     translucent animated gradient overlays the hero, drifting slowly
+     through the brand palette. Stays on for the rest of the session;
+     a reload resets it.
+     Implemented as a ::before pseudo-element so it sits ABOVE the base
+     background layers (image + overlay) but BELOW the content
+     (z-index: 1 on .vk-hero-inner). screen blend mode keeps the hero
+     image and copy clearly readable. */
+  html.vk-aurora .vk-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      var(--valkey-purple-300) 0%,
+      var(--valkey-purple-100) 20%,
+      #4257b3 40%,
+      var(--valkey-blue-200) 60%,
+      var(--valkey-purple-100) 80%,
+      var(--valkey-purple-300) 100%
+    );
+    background-size: 400% 400%;
+    mix-blend-mode: screen;
+    opacity: 0.55;
+    animation: vk-aurora-drift 18s ease-in-out infinite;
   }
   @keyframes vk-aurora-drift {
-    0%   { background-position: 0% 50%, center, 0% 50%; }
-    50%  { background-position: 0% 50%, center, 100% 50%; }
-    100% { background-position: 0% 50%, center, 0% 50%; }
+    0%   { background-position:   0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position:   0% 50%; }
   }
   /* Reduced-motion users get the unlocked state without the animation —
      a single mid-cycle frame so they can still tell something changed. */
   @media (prefers-reduced-motion: reduce) {
-    :where(html.vk-aurora) .vk-hero {
+    html.vk-aurora .vk-hero::before {
       animation: none;
-      background-position: 0% 50%, center, 50% 50%;
+      background-position: 50% 50%;
     }
   }
 </style>
