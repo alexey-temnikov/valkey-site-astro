@@ -1,211 +1,240 @@
-# Valkey Astro + Starlight — full migration
+# Valkey.io website (Astro prototype)
 
-Complete migration of the Valkey.io website from Zola to Astro + Starlight,
-unifying the marketing site, Valkey docs, command reference, client libraries,
-blog, and GLIDE docs under one domain with one search index.
+This repo contains a prototype migration of the [valkey.io](https://valkey.io)
+website from [Zola](https://www.getzola.org/) to
+[Astro](https://astro.build) + [Starlight](https://starlight.astro.build).
+The build integrates content from
+[`valkey-io/valkey-doc`](https://github.com/valkey-io/valkey-doc)
+and command definitions from
+[`valkey-io/valkey`](https://github.com/valkey-io/valkey),
+[`valkey-io/valkey-bloom`](https://github.com/valkey-io/valkey-bloom),
+[`valkey-io/valkey-json`](https://github.com/valkey-io/valkey-json),
+and [`valkey-io/valkey-search`](https://github.com/valkey-io/valkey-search)
+(see [Build Locally](#build-locally) below).
 
-## Run it
+The marketing site, documentation topics, command reference, client
+libraries, blog, leadership, events, community pages, and the GLIDE docs
+are unified under one domain with one search index and one navigation chrome.
 
-```bash
-cd valkey-site-astro
+A live preview of the prototype is available at
+[valkey.alexey-temnikov.com](https://valkey.alexey-temnikov.com/).
+
+## Contributing
+
+Ideas, suggestions, and PRs are welcome. The proposal to migrate the
+upstream site is tracked at
+[valkey-io/valkey-io.github.io](https://github.com/valkey-io/valkey-io.github.io).
+
+## Build Locally
+
+This site is built with [Astro](https://astro.build) and
+[Starlight](https://starlight.astro.build), using
+[pnpm](https://pnpm.io/) as the package manager and
+[Pagefind](https://pagefind.app/) for site-wide search.
+
+Prerequisites:
+
+- Node.js 20 or newer (Node 22 is used in CI)
+- pnpm 9 or newer
+- A local clone of [`valkey-io/valkey-doc`](https://github.com/valkey-io/valkey-doc)
+  as a sibling directory (required: topics + command descriptions)
+
+Optional sibling repos (the build still succeeds without them, but the
+corresponding command pages will be missing):
+
+- [`valkey-io/valkey`](https://github.com/valkey-io/valkey)
+- [`valkey-io/valkey-bloom`](https://github.com/valkey-io/valkey-bloom)
+- [`valkey-io/valkey-json`](https://github.com/valkey-io/valkey-json)
+- [`valkey-io/valkey-search`](https://github.com/valkey-io/valkey-search)
+
+Layout on disk:
+
+```
+your-workspace/
+├── valkey-site-astro/   # this repo
+├── valkey-doc/          # required
+├── valkey/              # optional
+├── valkey-bloom/        # optional
+├── valkey-json/         # optional
+└── valkey-search/       # optional
+```
+
+Then, from inside `valkey-site-astro/`:
+
+```shell
 pnpm install
-pnpm build
-python3 -m http.server 4322 --bind 127.0.0.1 --directory dist
-# → http://127.0.0.1:4322/
+pnpm dev    # development server with HMR at http://localhost:4321/
 ```
 
-Dev server (Vite HMR):
-```bash
-pnpm dev --host 127.0.0.1 --port 4321
+Or to produce a static build:
+
+```shell
+pnpm build  # outputs to dist/
+pnpm preview
 ```
 
-## Parity with valkey.io
+`pnpm build` runs the `scripts/sync-topics.sh` step before building. That
+script copies the topic Markdown from `../valkey-doc/topics/` into the
+Starlight content collection at `src/content/docs/topics/` so the docs
+pick up the latest topic content on every build.
 
-Verified against `https://valkey.io/` via chrome-devtools:
+The command reference is loaded at build time by `src/lib/commands.ts`,
+which walks the four product repos for command JSON and merges with the
+matching `*.md` description in `valkey-doc/commands/`.
 
-| Item | valkey.io | This build |
-|---|---|---|
-| Page title | "Valkey" | ✓ "Valkey" |
-| Hero H1s | "FAST. RELIABLE." / "OPEN SOURCE, FOREVER." | ✓ same |
-| Hero subtitle + CTA | ✓ | ✓ same |
-| Doc cards (4) | Install / Usage / API / Clients | ✓ same |
-| Participants section | 17 logos, auto-scrolling carousel (3/2/1 per slide, dots, hover-pause) | ✓ 17 logos, 1:1 carousel port of `participant-carousel.html` + `carousel.js` |
-| Newsletter form | LF HubSpot | ✓ LF HubSpot |
-| Announcement banner | Valkey 9.0 | ✓ + 24h localStorage dismiss |
-| Top nav | Download / Docs / Blog / Community / Participants / Try Valkey / GitHub | ✓ same |
-| GitHub star badge | "25.7k ★" | ✓ live from GH API, localStorage cache |
-| Footer | 3-row layout, socials, LF legal | ✓ same |
-| Body font | Open Sans | ✓ same |
-| Leadership | 9 TSC members, Chair first | ✓ 9 TSC members, Chair first |
-| Events | calendar + per-event pages | ✓ same |
-| Community | cards + per-page sub-routes | ✓ same |
-| Try Valkey | V86 in-browser emulator | ✓ same (1:1 port) |
+## How content flows into pages
 
-## Content inventory
+Documentation topics (`/topics/quickstart/`, `/topics/encryption/`, …)
+come from `valkey-doc/topics/*.md`:
 
-| Kind | Count | Source |
-|---|---:|---|
-| Astro pages built | 735 | `pnpm build` |
-| HTML files in `dist/` (incl. GLIDE) | 840 | `find dist -name '*.html' \| wc -l` |
-| Pages in unified Pagefind index | 836 | `dist/pagefind/pagefind-entry.json` |
-| Topic docs | 78 | mirrored from `../valkey-doc/topics/` |
-| Command pages | 436 | generated from 4 repos × JSON + docs |
-| Command groups | 20 | `../valkey-doc/groups.json` |
-| Blog posts | 104 | mirrored from `../valkey-io.github.io/content/blog/` |
-| Authors | 53 | ported from Zola `content/authors/*.md` |
-| TSC members (Leadership) | 8 locally (9 on valkey.io) | authors with `tsc:` frontmatter |
-| Events | 5 (3 content + 2 redirect-only) | `../valkey-io.github.io/content/events/` |
-| Community pages | 10 | `../valkey-io.github.io/content/community/` |
-| Client libraries | 12 | walked from `../valkey-doc/clients/*/` |
-| Participant companies | 17 | `_data/participants.yml` |
+```mermaid
+flowchart TD
+    A[Webpage: /topics/quickstart/]
+    A --> B[Starlight collection: src/content/docs/topics/]
+    B --> C[Synced from valkey-doc/topics/quickstart.md]
+```
 
-## Architecture
+Command pages (`/commands/set/`, `/commands/get/`, …) merge command
+metadata from the product repos with descriptions from valkey-doc:
+
+```mermaid
+flowchart TD
+    A[Webpage: /commands/set/]
+    A --> B[Astro page: src/pages/commands/[command].astro]
+    B --> F[Repo: valkey-io/valkey] --> G[File: src/commands/set.json] --> X[Command metadata]
+    B --> H[Repo: valkey-io/valkey-doc] --> I[File: commands/set.md] --> Y[Command description]
+    H --> J[Files: resp2_replies.json,<br/>resp3_replies.json] --> Z[Command reply]
+```
+
+Client libraries (`/clients/`) are sourced from
+`valkey-doc/clients/<lang>/*.json`. Blog posts, events, community pages,
+authors, releases, and the homepage participants list live as content
+collections inside `src/content/`.
+
+## Site structure
 
 ```
 valkey-site-astro/
-├── .github/workflows/build.yml   # CI: pnpm build + regression checks
-├── astro.config.mjs              # Starlight wiring, sidebar, /glide redirect, remark plugin
+├── astro.config.mjs              # Starlight wiring, redirects, remark plugin
+├── scripts/
+│   ├── sync-topics.sh            # Copies valkey-doc/topics/ into the collection
+│   └── fix-glide-links.mjs       # Post-build: fixes root-relative GLIDE links
 ├── public/
-│   ├── fonts/ (4 families)       # Open Sans / Condensed / Noto Serif / Fira Mono
-│   ├── img/ (38)                 # logos, icons, hero-bg
-│   ├── assets/blog/<slug>/       # blog post images
-│   ├── assets/media/authors/     # author profile photos (52)
-│   ├── robots.txt
-│   └── glide → ../../valkey-io.github.io/static/glide  # broken on fresh clone; see below
+│   ├── fonts/                    # Open Sans / Condensed / Noto Serif / Fira Mono
+│   ├── img/                      # Logos, icons, hero background
+│   ├── assets/blog/<slug>/       # Per-post images
+│   ├── assets/media/authors/     # Author profile photos
+│   ├── glide/                    # Pre-built GLIDE bundle (CI populates this)
+│   ├── CNAME
+│   └── robots.txt
 ├── src/
 │   ├── content/
-│   │   ├── blog/*.md             # 104 posts (content + images in public/)
-│   │   ├── docs/topics/*.md      # 78 topics (Starlight collection)
-│   │   ├── events/*.md           # 5 events
-│   │   ├── community/*.md        # 10 community pages
-│   │   └── authors/*.md          # 53 author bios (8 TSC)
-│   ├── content.config.ts         # docs + blog + events + community + authors schemas
+│   │   ├── docs/topics/*.md      # Synced from valkey-doc at build time
+│   │   ├── blog/*.md             # Blog posts
+│   │   ├── events/*.md           # Events
+│   │   ├── community/*.md        # Community pages
+│   │   ├── authors/*.md          # Author bios; TSC = subset with `tsc:` frontmatter
+│   │   ├── releases/*.md         # Per-version release notes
+│   │   └── pages/                # Standalone Markdown for marketing pages
+│   ├── content.config.ts         # Schemas for every collection
 │   ├── pages/
-│   │   ├── index.astro           # homepage: hero → docs → participants → newsletter
-│   │   ├── leadership.astro      # TSC grid, filtered from authors collection
-│   │   ├── docs/index.astro      # /docs/ hub (4 cards)
-│   │   ├── commands/
-│   │   │   ├── index.astro       # grouped by groups.json, jump nav
-│   │   │   └── [command].astro   # dynamic page: meta + desc + RESP2/3 replies
-│   │   ├── authors/
-│   │   │   ├── index.astro       # alphabetical author directory
-│   │   │   └── [slug].astro      # per-author bio + other-authors aside
-│   │   ├── events/
-│   │   │   ├── index.astro       # month-grid calendar + card list
-│   │   │   └── [slug].astro      # per-event page + external_url redirect support
-│   │   ├── community/
-│   │   │   ├── index.astro       # global cards + sub-page list
-│   │   │   └── [slug].astro      # per-community-page with per-page cards merged in
-│   │   ├── clients/index.astro   # grouped by language, feature matrix
-│   │   ├── blog/
-│   │   │   ├── index.astro       # featured + grid
-│   │   │   ├── [slug].astro      # per-post render
-│   │   │   └── rss.xml.ts        # RSS feed
-│   │   ├── participants/index.astro
-│   │   ├── try-valkey/index.astro  # V86 in-browser emulator (1:1 port of Zola)
-│   │   ├── download/, events/, search/
+│   │   ├── index.astro           # Homepage
+│   │   ├── leadership.astro      # TSC grid
+│   │   ├── docs/index.astro      # Docs hub
+│   │   ├── commands/             # index + dynamic [command].astro
+│   │   ├── authors/              # index + [slug].astro
+│   │   ├── events/               # calendar + per-event pages
+│   │   ├── community/            # cards + per-community-page sub-routes
+│   │   ├── clients/              # Grouped by language with feature matrix
+│   │   ├── blog/                 # index + [slug].astro + RSS
+│   │   ├── participants/         # Participants directory
+│   │   ├── try-valkey/           # V86 in-browser emulator (Zola port)
+│   │   └── download/             # Download index + per-version pages
 │   ├── layouts/
-│   │   └── MarketingLayout.astro   # SEO meta, OG, GTM, Osano hooks (PROD-gated)
-│   ├── components/
-│   │   ├── AnnouncementBanner.astro
-│   │   ├── SiteHeader.astro        # mobile menu, active state, GH stars
-│   │   ├── SiteFooter.astro
-│   │   ├── SearchOverlay.astro     # site-wide ⌘K Pagefind dialog
-│   │   └── starlight/
-│   │       ├── Header.astro        # override: mounts SiteHeader
-│   │       └── Banner.astro        # override: mounts AnnouncementBanner
-│   ├── lib/
-│   │   └── commands.ts             # 4-repo data loader; rewrites inline + [id]: foo.md defs
+│   │   └── MarketingLayout.astro # SEO meta, OG, GTM, Osano (PROD-gated)
+│   ├── components/               # Header, footer, hero, cards, etc.
 │   ├── data/
-│   │   └── participants.json       # from _data/participants.yml
-│   ├── remark/
-│   │   └── rewrite-md-links.mjs    # remark plugin: rewrites topic/command .md → route URLs
+│   │   ├── participants.yml      # Homepage + /participants/ data
+│   │   └── perf.ts               # Performance dashboard config
+│   ├── lib/                      # Command/release loaders, blog helpers
+│   ├── remark/                   # Markdown plugins (rewrite .md links)
 │   └── styles/
-│       └── valkey-brand.css        # colors, fonts, hero, nav, footer
+│       └── valkey-brand.css      # Brand tokens, light/dark mode, layout
+└── .github/workflows/build.yml   # CI: build + verify + GitHub Pages deploy
 ```
 
 ## Key design decisions
 
-1. **One Starlight content collection for docs, pages for marketing.**
-   `src/content/docs/topics/*` is a Starlight collection (auto-sidebar, TOC,
-   search, edit-on-GitHub). `src/pages/*` are plain Astro marketing pages.
+1. **Starlight content collection for docs, Astro pages for marketing.**
+   `src/content/docs/topics/*` is a Starlight collection (auto-sidebar,
+   TOC, edit-on-GitHub). `src/pages/*` are plain Astro marketing pages.
 2. **Starlight component overrides reuse the marketing chrome.**
-   `components.Header` and `components.Banner` in `astro.config.mjs` point at
-   wrapper files that render the same `SiteHeader` / `AnnouncementBanner`
-   used by the marketing pages. Result: identical chrome everywhere.
-3. **Commands generated, not ported.** `src/pages/commands/[command].astro`
-   uses `getStaticPaths()` to enumerate every JSON in all 4 repos'
-   `src/commands/` and merges with the corresponding Markdown description
-   from `../valkey-doc/commands/`. Links inside RESP replies and descriptions
-   are rewritten from Zola-style `../topics/foo.md` to `/topics/foo/` —
-   including reference-style `[id]: foo.md` definitions.
-4. **GLIDE via public/ symlink.** `public/glide/` symlinks to the pre-built
-   Starlight dist from the `valkey-glide-docs` project. Zero coupling, still
-   indexed by our Pagefind.
-5. **One Pagefind index covers everything.** Marketing pages, Valkey docs,
-   commands, blog, AND GLIDE — 836 pages in the same index. ⌘K opens the
-   same dialog site-wide via `SearchOverlay` component.
-6. **Brand via CSS custom properties.** Overriding `--sl-color-*` variables
-   makes Starlight inherit the Valkey palette without forking its theme.
-7. **SEO + analytics gated by prod.** GTM (`PUBLIC_GTM_ID` env or valkey.io
-   default), Osano CMP, and Scarf pixel only emit when `import.meta.env.PROD`
-   is true, keeping dev clean.
-8. **Authors as first-class content collection.** TSC members are the
-   subset of the authors collection with non-empty `tsc:` frontmatter;
-   the `/leadership/` page is just a filtered view of that collection,
-   matching the Zola template's `get_section('authors/_index.md')` approach.
+   `astro.config.mjs` points Starlight's `Header` and `Banner` slots at
+   `SiteHeader.astro` and `AnnouncementBanner.astro`, so docs and
+   marketing pages share identical chrome.
+3. **Commands are generated, not ported.**
+   `src/pages/commands/[command].astro` enumerates every JSON in the four
+   product repos and merges with the corresponding Markdown description
+   from `valkey-doc/commands/`. Links inside descriptions and RESP
+   replies are rewritten from Zola-style `../topics/foo.md` to
+   `/topics/foo/` (including reference-style `[id]: foo.md` definitions).
+4. **GLIDE docs vendored into `public/glide/`.**
+   The CI builds [`valkey-io/valkey-glide-docs`](https://github.com/valkey-io/valkey-glide-docs)
+   with `base: '/glide/'` and drops the output into `public/glide/`, so
+   GLIDE is served under the `/glide/` prefix on the same domain. The
+   post-build `fix-glide-links.mjs` step rewrites stray root-relative
+   GLIDE links to use the prefix.
+5. **One Pagefind index covers everything.**
+   Marketing pages, topics, commands, blog, authors, events, community,
+   AND GLIDE end up in the same Pagefind index. ⌘K opens the same dialog
+   site-wide via Starlight's reused `<Search />` component.
+6. **Brand via CSS custom properties.**
+   `src/styles/valkey-brand.css` defines theme tokens
+   (`--valkey-text`, `--valkey-link`, `--valkey-section-*-bg`, …) and
+   overrides Starlight's `--sl-color-*` so the docs inherit the Valkey
+   palette without forking the Starlight theme. Light/dark mode is
+   driven by `<html data-theme="…">`.
+7. **SEO + analytics gated by production.**
+   GTM (`PUBLIC_GTM_ID` env var or the valkey.io default), Osano CMP,
+   and the Scarf pixel only emit when `import.meta.env.PROD` is true,
+   keeping local development clean.
+8. **Authors as a first-class content collection.**
+   TSC members are the subset of authors with non-empty `tsc:`
+   frontmatter; `/leadership/` is just a filtered view of that
+   collection.
 
-## Known rough edges
+## Continuous integration
 
-- **Dev-server `/glide/*/` trailing-slash 404.** Starlight's catchall
-  intercepts before Astro's public/ static fallback. Works in production
-  (any web server with directory-index behavior handles `/glide/overview/`
-  → `/glide/overview/index.html`). Current dev workaround: the /glide/
-  redirect in `astro.config.mjs`.
-- **`public/glide` symlink is broken on fresh clones.** The target path
-  `../../valkey-io.github.io/static/glide` only exists if you also clone
-  `valkey-io/valkey-io.github.io` as a sibling of this repo. Without it,
-  `pnpm build` still succeeds on macOS/Linux but `/glide/*` pages 404.
-  The CI workflow substitutes a placeholder directory automatically.
-- **Duplicate Pagefind index under `/glide/pagefind/`.** The GLIDE bundle
-  ships its own embedded Pagefind index (~1–2 MB) in addition to being
-  picked up by the site-wide index. Users hitting ⌘K always land in the
-  unified overlay, so this is invisible; de-duplication would require
-  post-processing the foreign GLIDE artifact.
-- **Leadership missing one member vs. live site.** The live valkey.io
-  shows 9 TSC members; this build shows 8 out of the box because one
-  author file (`murphyjacob4.md`) had 2-space YAML indentation the
-  original port pass didn't normalize. Fixed by hand and now matches 9/9.
-  Kept as a note in case another author file lands with the same shape.
+`.github/workflows/build.yml` runs on every push to `main`, every PR,
+and manual dispatch:
 
-## Deploying
-
-The CI workflow at `.github/workflows/build.yml` builds the site and
-uploads `dist/` as an artifact on every push to `main` and every PR. It
-intentionally does **not** publish anywhere — pick a target (GitHub
-Pages, Cloudflare Pages, Netlify, S3 + CloudFront, …) and add a deploy
-job when ready.
-
-Required sibling repos for a full build:
-- `../valkey-doc` (topics + command descriptions)
-- `../valkey` (core command JSON)
-- `../valkey-bloom` / `../valkey-json` / `../valkey-search` (module command JSON — optional)
-- `../valkey-io.github.io` (for the GLIDE symlink target — optional)
+1. Checks out this repo plus the sibling repos (`valkey-doc`, `valkey`,
+   `valkey-bloom`, `valkey-json`, `valkey-search`, `valkey-glide-docs`).
+   Missing optional siblings degrade gracefully.
+2. Builds the GLIDE Starlight site with `base: '/glide/'` and places
+   the output into `public/glide/` (or a placeholder if the GLIDE repo
+   is unavailable).
+3. Runs `pnpm install --frozen-lockfile` and `pnpm build`.
+4. Verifies the expected page families exist (`/`, `/commands/`,
+   `/blog/`, `/topics/`, `/authors/`, `/leadership/`, `/events/`,
+   `/community/`, `/try-valkey/`, plus the Pagefind directory) and
+   asserts the build produced more than 600 HTML files.
+5. Fails the build if any page leaks a legacy `.md` link (catches
+   regressions in the remark link rewriter).
+6. Deploys `dist/` to GitHub Pages — only on pushes to `main`.
 
 ## Comparing with the live site
 
-Use chrome-devtools to diff:
 ```bash
-# Compare head-to-head structure:
-open http://127.0.0.1:4322/     # local prototype
-open https://valkey.io/         # reference
+open http://localhost:4321/   # local prototype (pnpm dev)
+open https://valkey.io/       # reference
 ```
 
-Both should show identical title, H1s, H2 section order, card counts,
-logo count, nav items, GitHub star badge. Sub-sections like blog posts
-and individual commands should look the same. GLIDE subsection at
-`/glide/overview/` is shared between both sites — serving from the same
-pre-built output.
+The two should match in title, hero copy, section order, doc card
+counts, participant logos, navigation, and the GitHub star badge. The
+GLIDE subsection at `/glide/overview/` is built from the same
+`valkey-io/valkey-glide-docs` source on both sites.
 
-For a rigorous page-by-page audit, see `meta-prompt-migration-fidelity.md`
-in the parent directory.
+## License
+
+This project is licensed under the BSD-3-Clause License.
