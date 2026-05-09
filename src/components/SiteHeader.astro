@@ -142,8 +142,35 @@ const isActive = (href: string) =>
       try { w.StarlightThemeProvider.updatePickers(t); } catch {}
     }
   }
+  // Easter egg: 6 rapid theme toggles (within a 3-second sliding window)
+  // unlock "Aurora" — the homepage hero gradient starts to slowly drift
+  // through the brand palette. The state lives on <html class="vk-aurora">
+  // so HomeHero's CSS rule can pick it up. Pure CSS animation after that;
+  // no runtime JS cost. Resets on reload.
+  const AURORA_THRESHOLD = 6;
+  const AURORA_WINDOW_MS = 3000;
+  const auroraToggles: number[] = [];
   themeBtn?.addEventListener("click", () => {
     applyTheme(currentTheme() === "dark" ? "light" : "dark");
+
+    if (document.documentElement.classList.contains("vk-aurora")) return;
+    const now = Date.now();
+    auroraToggles.push(now);
+    // Drop entries outside the sliding window.
+    while (auroraToggles.length && now - auroraToggles[0] > AURORA_WINDOW_MS) {
+      auroraToggles.shift();
+    }
+    if (auroraToggles.length >= AURORA_THRESHOLD) {
+      document.documentElement.classList.add("vk-aurora");
+      auroraToggles.length = 0;
+      try {
+        // eslint-disable-next-line no-console
+        console.log(
+          "%c✦ Aurora unlocked.",
+          "font: 600 13px/1.4 ui-monospace, monospace; color: #8736aa; padding: 4px 8px; border: 1px solid #b9d9eb; border-radius: 4px;",
+        );
+      } catch {}
+    }
   });
 
   // GitHub stars for valkey-io/valkey, cached for 1 hour. The cached
