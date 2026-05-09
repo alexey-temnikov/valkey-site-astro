@@ -89,9 +89,9 @@ come from `valkey-doc/topics/*.md`:
 
 ```mermaid
 flowchart TD
-    A[Webpage: /topics/quickstart/]
-    A --> B[Starlight collection: src/content/docs/topics/]
-    B --> C[Synced from valkey-doc/topics/quickstart.md]
+    A["Webpage: /topics/quickstart/"]
+    A --> B["Starlight collection: src/content/docs/topics/"]
+    B --> C["Synced from valkey-doc/topics/quickstart.md"]
 ```
 
 Command pages (`/commands/set/`, `/commands/get/`, …) merge command
@@ -99,11 +99,11 @@ metadata from the product repos with descriptions from valkey-doc:
 
 ```mermaid
 flowchart TD
-    A[Webpage: /commands/set/]
-    A --> B[Astro page: src/pages/commands/[command].astro]
-    B --> F[Repo: valkey-io/valkey] --> G[File: src/commands/set.json] --> X[Command metadata]
-    B --> H[Repo: valkey-io/valkey-doc] --> I[File: commands/set.md] --> Y[Command description]
-    H --> J[Files: resp2_replies.json,<br/>resp3_replies.json] --> Z[Command reply]
+    A["Webpage: /commands/set/"]
+    A --> B["Astro page: src/pages/commands/&#91;command&#93;.astro"]
+    B --> F["Repo: valkey-io/valkey"] --> G["File: src/commands/set.json"] --> X["Command metadata"]
+    B --> H["Repo: valkey-io/valkey-doc"] --> I["File: commands/set.md"] --> Y["Command description"]
+    H --> J["Files: resp2_replies.json,<br/>resp3_replies.json"] --> Z["Command reply"]
 ```
 
 Client libraries (`/clients/`) are sourced from
