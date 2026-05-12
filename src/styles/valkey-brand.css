@@ -317,6 +317,7 @@
    .site-header and Starlight's right-sidebar TOC keeps working. */
 html {
   overflow-x: clip;
+  scrollbar-gutter: stable;
 }
 
 body {
