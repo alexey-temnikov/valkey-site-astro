@@ -152,22 +152,50 @@ const events = entries
 
       // Render all event cards (sorted descending by date).
       var allEvents = events.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
+      var today = new Date().toISOString().substring(0, 10);
+      var upcomingEvents = allEvents.filter(function (e) { return e.date >= today; });
+      var pastEvents = allEvents.filter(function (e) { return e.date < today; });
+
       var listHtml = "";
-      allEvents.forEach(function (e) {
-        // Parse as local noon to avoid TZ off-by-one (mirrors content.config.ts).
-        var parts = e.date.split("-");
-        var dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
-        var dateStr = monthNames[dateObj.getMonth()] + " " + dateObj.getDate() + ", " + dateObj.getFullYear();
-        var eventMonth = e.date.substring(0, 7);
-        var today = new Date().toISOString().substring(0, 10);
-        listHtml +=
-          '<div class="event-card' + (e.date < today ? " past" : "") + '" data-month="' + eventMonth + '">' +
-          '<span class="event-card-badge ' + e.type + '">' + (e.type === "first-party" ? "Valkey Event" : "Third Party") + "</span>" +
-          '<h3><a href="' + e.url + '">' + e.title + "</a></h3>" +
-          '<p class="event-card-date">' + dateStr + "</p>" +
-          (e.location ? '<p class="event-card-location"><a href="' + e.locationUrl + '" target="_blank" rel="noopener">' + e.location + "</a></p>" : "") +
-          "</div>";
-      });
+
+      // Upcoming events
+      if (upcomingEvents.length > 0) {
+        upcomingEvents.forEach(function (e) {
+          var parts = e.date.split("-");
+          var dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+          var dateStr = monthNames[dateObj.getMonth()] + " " + dateObj.getDate() + ", " + dateObj.getFullYear();
+          var eventMonth = e.date.substring(0, 7);
+          listHtml +=
+            '<div class="event-card" data-month="' + eventMonth + '">' +
+            '<span class="event-card-badge ' + e.type + '">' + (e.type === "first-party" ? "Valkey Event" : "Third Party") + "</span>" +
+            '<h3><a href="' + e.url + '">' + e.title + "</a></h3>" +
+            '<p class="event-card-date">' + dateStr + "</p>" +
+            (e.location ? '<p class="event-card-location"><a href="' + e.locationUrl + '" target="_blank" rel="noopener">' + e.location + "</a></p>" : "") +
+            "</div>";
+        });
+      } else {
+        listHtml += '<p class="no-events">No upcoming events. Check back soon!</p>';
+      }
+
+      // Past events (collapsed by default)
+      if (pastEvents.length > 0) {
+        listHtml += '<details class="past-events-toggle"><summary>Past events (' + pastEvents.length + ')</summary><div class="past-events-list">';
+        pastEvents.forEach(function (e) {
+          var parts = e.date.split("-");
+          var dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
+          var dateStr = monthNames[dateObj.getMonth()] + " " + dateObj.getDate() + ", " + dateObj.getFullYear();
+          var eventMonth = e.date.substring(0, 7);
+          listHtml +=
+            '<div class="event-card past" data-month="' + eventMonth + '">' +
+            '<span class="event-card-badge ' + e.type + '">' + (e.type === "first-party" ? "Valkey Event" : "Third Party") + "</span>" +
+            '<h3><a href="' + e.url + '">' + e.title + "</a></h3>" +
+            '<p class="event-card-date">' + dateStr + "</p>" +
+            (e.location ? '<p class="event-card-location"><a href="' + e.locationUrl + '" target="_blank" rel="noopener">' + e.location + "</a></p>" : "") +
+            "</div>";
+        });
+        listHtml += '</div></details>';
+      }
+
       document.getElementById("events-list").innerHTML = listHtml;
 
       document.getElementById("cal-prev").addEventListener("click", function () { if (currentIdx > 0) { currentIdx--; render(); } });
@@ -337,6 +365,34 @@ const events = entries
     margin: 0.3rem 0;
   }
   .events-list .event-card-location a { color: var(--valkey-link); }
+
+  .events-list .no-events {
+    text-align: center;
+    color: var(--valkey-text-light);
+    font-size: 1.4rem;
+    padding: 2rem 0;
+  }
+
+  .events-list .past-events-toggle {
+    border-top: 1px solid var(--valkey-line);
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .events-list .past-events-toggle summary {
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--valkey-text-light);
+    padding: 0.5rem 0;
+  }
+  .events-list .past-events-toggle summary:hover {
+    color: var(--valkey-text);
+  }
+  .events-list .past-events-list {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
 
   @media (max-width: 600px) {
     .calendar-header span { font-size: 1.1rem; }
