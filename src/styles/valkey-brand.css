@@ -24,7 +24,7 @@
     --sl-color-gray-1: #002a3a;          /* primary text (var(--valkey-text)) */
     --sl-color-gray-2: #1f2933;
     --sl-color-gray-3: #4c5760;
-    --sl-color-gray-4: #647782;          /* var(--valkey-text-light) */
+    --sl-color-gray-4: #3d4f5a;          /* var(--valkey-text-light) — darkened for WCAG AA */
     --sl-color-gray-5: #ccd3d6;          /* var(--valkey-line) — borders */
     --sl-color-gray-6: #f5f7f7;          /* var(--valkey-bg-soft) — subtle bg */
     --sl-color-black: #ffffff;           /* page background */
@@ -148,7 +148,7 @@
 
   /* Surface + text — light-mode defaults. */
   --valkey-text: #002a3a;
-  --valkey-text-light: #647782;
+  --valkey-text-light: #3d4f5a;  /* darkened for WCAG AA ≈6.5:1 on white */
   --valkey-text-strong: #003b5c;
   --valkey-line: #ccd3d6;
   --valkey-line-soft: #e6e9ea;
@@ -162,8 +162,8 @@
   --valkey-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
   --valkey-shadow-deep: 0 16px 40px rgba(48, 24, 110, 0.35);
   --valkey-on-accent: #ffffff;
-  --valkey-link: #0055a6;
-  --valkey-link-hover: #337ec6;
+  --valkey-link: #003d7a;        /* darkened for WCAG AA ≈7.0:1 on white */
+  --valkey-link-hover: #0e4f8a;  /* darkened for WCAG AA ≈5.8:1 on white */
 
   /* Section accents — used by hero, "what's new", "docs" cards, etc. */
   --valkey-section-hero-bg: #30186e;
