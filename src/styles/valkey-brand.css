@@ -183,12 +183,8 @@
   --valkey-section-participants-bg: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
   --valkey-section-participants-card-bg: #ffffff;
   --valkey-section-participants-card-hover: #f9f7fe;
-  --valkey-section-styled-title-bg: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
-  --valkey-section-page-subhead-bg: linear-gradient(
-    135deg,
-  rgb(28, 14, 70), 
-  rgb(58, 76, 168)
-  );
+  --valkey-section-styled-title-bg: linear-gradient(#3b2a66, #4e51bf);
+  --valkey-section-page-subhead-bg: linear-gradient(#3b2a66, #4e51bf);
   --valkey-banner-bg: #2d2471;
   --valkey-footer-bg: #1a2026;
   --valkey-footer-text: #b3c2cb;
@@ -260,11 +256,10 @@
   --valkey-section-participants-bg: linear-gradient(180deg, #2e3a8a 0%, #4d4670 100%);
   --valkey-section-participants-card-bg: #1a2027;
   --valkey-section-participants-card-hover: #232a35;
-  --valkey-section-styled-title-bg: linear-gradient(rgb(34, 22, 64), rgb(44, 48, 117));
+  --valkey-section-styled-title-bg: linear-gradient(#3b2a66, #4e51bf);
   --valkey-section-page-subhead-bg: linear-gradient(
-    135deg,
-  rgb(28, 14, 70), 
-    rgb(58, 76, 168)
+    rgb(34, 22, 64),
+    rgb(44, 48, 117)
   );
   --valkey-banner-bg: #2d2471;
   --valkey-footer-bg: #07090c;
