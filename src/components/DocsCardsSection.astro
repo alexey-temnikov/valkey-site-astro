@@ -107,7 +107,7 @@ const docCards = [
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     text-align: left;
   }
@@ -203,9 +203,6 @@ const docCards = [
   .vk-docs-cta svg { transition: transform 0.2s ease; }
   .vk-docs-card a:hover .vk-docs-cta svg { transform: translateX(3px); }
 
-  @media (max-width: 1100px) {
-    .vk-docs-cards { grid-template-columns: repeat(2, 1fr); }
-  }
   @media (max-width: 600px) {
     .vk-docs-cards { grid-template-columns: 1fr; }
     .vk-docs { padding: 3.5rem 1rem 4rem; }
