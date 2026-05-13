@@ -23,7 +23,13 @@ const authors = (await getCollection("authors")).sort((a, b) =>
         return (
           <li class="author-row">
             <a href={`/authors/${author.id}/`} class="author-link">
-              {photo && <img src={photo} alt={name} class="author-thumb" />}
+              {photo ? (
+                <img src={photo} alt={name} class="author-thumb" />
+              ) : (
+                <span class="author-thumb author-thumb--empty" aria-hidden="true">
+                  {name.split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("")}
+                </span>
+              )}
               <span class="author-name">{name}</span>
               {tsc && <span class="author-tag">TSC</span>}
             </a>
@@ -74,6 +80,18 @@ const authors = (await getCollection("authors")).sort((a, b) =>
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+  }
+  .author-thumb--empty {
+    display: grid;
+    place-items: center;
+    background: var(--valkey-bg-soft);
+    border: 1px solid var(--valkey-line);
+    font-family: var(--valkey-cond);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--valkey-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
   .author-name {
     font-weight: 600;
