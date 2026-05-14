@@ -222,14 +222,16 @@ const latestPosts = allPosts
     line-height: 0.9;
     color: var(--valkey-text-strong, #003b5c);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    font-kerning: normal;
     margin: 0.25rem 0 1rem;
+    display: flex;
+    align-items: baseline;
   }
   .vk-wn-release-version .v-major { font-size: clamp(3.5rem, 7vw, 5.5rem); color: var(--valkey-purple-200, #692a84); }
   .vk-wn-release-version .v-rest {
     font-size: clamp(1.75rem, 3.5vw, 2.75rem);
     color: var(--valkey-purple-100, #8736aa);
-    margin-left: 0.15em;
   }
   .vk-wn-release-card :global(.release-section) { margin: 0; }
   .vk-wn-release-card :global(.release-section h4) {
@@ -328,12 +330,12 @@ const latestPosts = allPosts
     line-height: 1;
     color: var(--valkey-purple-200, #692a84);
     font-variant-numeric: tabular-nums;
-    letter-spacing: 0;
+    font-kerning: normal;
+    letter-spacing: -0.01em;
   }
   .past-v-major .past-v-rest {
     color: var(--valkey-purple-100, #8736aa);
     font-size: 0.75em;
-    margin-left: 0.05em;
   }
   .past-v-meta {
     display: flex;
