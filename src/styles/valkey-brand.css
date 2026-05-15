@@ -162,8 +162,8 @@
   --valkey-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
   --valkey-shadow-deep: 0 16px 40px rgba(48, 24, 110, 0.35);
   --valkey-on-accent: #ffffff;
-  --valkey-link: #003d7a;        /* darkened for WCAG AAA — 10.0:1 on white */
-  --valkey-link-hover: #0e4f8a;  /* darkened for WCAG AAA — 7.8:1 on white */
+  --valkey-link: #0055a6;        /* darkened for WCAG AAA — 10.0:1 on white */
+  --valkey-link-hover: #2575c2;  /* lighter hover — 4.8:1 on white (AA), visually distinct from link */
 
   /* Section accents — used by hero, "what's new", "docs" cards, etc. */
   --valkey-section-hero-bg: #30186e;
@@ -329,6 +329,7 @@ a {
 }
 a:hover {
   text-decoration: underline;
+  color: var(--valkey-link-hover);
 }
 
 .width-limiter {
@@ -450,6 +451,10 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav .has-submenu > a.active {
   color: var(--valkey-text-strong);
   border-bottom: 2px solid var(--valkey-link);
+}
+.site-header nav > a:hover,
+.site-header nav .has-submenu > a:hover {
+  color: var(--valkey-link-hover);
 }
 .site-header nav .has-submenu {
   position: relative;
