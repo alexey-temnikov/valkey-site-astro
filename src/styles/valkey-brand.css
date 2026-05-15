@@ -162,7 +162,7 @@
   --valkey-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
   --valkey-shadow-deep: 0 16px 40px rgba(48, 24, 110, 0.35);
   --valkey-on-accent: #ffffff;
-  --valkey-link: #0055a6;        /* darkened for WCAG AAA — 10.0:1 on white */
+  --valkey-link: #0055a6;        /* darkened for WCAG AAA — 7.4:1 on white */
   --valkey-link-hover: #2575c2;  /* lighter hover — 4.8:1 on white (AA), visually distinct from link */
 
   /* Section accents — used by hero, "what's new", "docs" cards, etc. */
@@ -178,9 +178,9 @@
     rgba(48, 24, 110, 1) 100%
   );
   --valkey-section-whatsnew-bg: linear-gradient(rgb(48, 23, 110), rgb(105, 131, 255));
-  --valkey-section-docs-bg: #6983ff;
+  --valkey-section-docs-bg: #4a65d4;
   --valkey-section-docs-card-bg: #2d2471;
-  --valkey-section-participants-bg: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
+  --valkey-section-participants-bg: linear-gradient(180deg, #4a65d4 0%, #bcb5e7 100%);
   --valkey-section-participants-card-bg: #ffffff;
   --valkey-section-participants-card-hover: #f9f7fe;
   --valkey-section-styled-title-bg: linear-gradient(#3b2a66, #4e51bf);
