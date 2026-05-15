@@ -1098,7 +1098,7 @@ starlight-menu-button + nav a[aria-current="page"],
   height: 5px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--valkey-line);
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
@@ -1106,14 +1106,14 @@ starlight-menu-button + nav a[aria-current="page"],
 
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot:hover,
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot:focus {
-  background: #000;
+  background: var(--valkey-text-strong);
   transform: scale(1.1);
   outline-offset: 2px;
 }
 
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot[aria-current="true"],
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot.active {
-  background: #000;
+  background: var(--valkey-text-strong);
   transform: scale(1.2);
 }
 
