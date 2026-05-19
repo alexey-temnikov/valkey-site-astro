@@ -10,6 +10,7 @@
 // GitHub profile (external).
 import MarketingLayout from "../layouts/MarketingLayout.astro";
 import { getCollection } from "astro:content";
+import { getInitials } from "../lib/initials";
 
 const allAuthors = await getCollection("authors");
 const tscMembers = allAuthors
@@ -58,7 +59,7 @@ tscMembers.sort((a, b) => {
               <img src={photo} alt={name} class="leadership-card-photo" />
             ) : (
               <div class="leadership-card-photo leadership-card-photo--empty" aria-hidden="true">
-                {name.split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("")}
+                {getInitials(name)}
               </div>
             )}
             <h3>{name}</h3>

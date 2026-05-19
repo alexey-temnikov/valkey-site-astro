@@ -3,6 +3,7 @@
 // Mirrors templates/authors.html which just emits <ul><li><a>.
 import MarketingLayout from "../../layouts/MarketingLayout.astro";
 import { getCollection } from "astro:content";
+import { getInitials } from "../../lib/initials";
 
 const authors = (await getCollection("authors")).sort((a, b) =>
   a.data.name.localeCompare(b.data.name),
@@ -27,7 +28,7 @@ const authors = (await getCollection("authors")).sort((a, b) =>
                 <img src={photo} alt={name} class="author-thumb" />
               ) : (
                 <span class="author-thumb author-thumb--empty" aria-hidden="true">
-                  {name.split(" ").map((p) => p[0]).filter(Boolean).slice(0, 2).join("")}
+                  {getInitials(name)}
                 </span>
               )}
               <span class="author-name">{name}</span>
