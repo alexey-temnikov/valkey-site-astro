@@ -150,24 +150,45 @@ const events = entries
         document.getElementById("cal-next").disabled = currentIdx === months.length - 1;
       }
 
-      // Render all event cards (sorted descending by date).
-      var allEvents = events.slice().sort(function (a, b) { return b.date.localeCompare(a.date); });
-      var listHtml = "";
-      allEvents.forEach(function (e) {
-        // Parse as local noon to avoid TZ off-by-one (mirrors content.config.ts).
+      // Helper to render a single event card (avoids duplication between sections).
+      function renderEventCard(e, isPast) {
         var parts = e.date.split("-");
         var dateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 12, 0, 0);
         var dateStr = monthNames[dateObj.getMonth()] + " " + dateObj.getDate() + ", " + dateObj.getFullYear();
         var eventMonth = e.date.substring(0, 7);
-        var today = new Date().toISOString().substring(0, 10);
-        listHtml +=
-          '<div class="event-card' + (e.date < today ? " past" : "") + '" data-month="' + eventMonth + '">' +
+        return '<div class="event-card' + (isPast ? " past" : "") + '" data-month="' + eventMonth + '">' +
           '<span class="event-card-badge ' + e.type + '">' + (e.type === "first-party" ? "Valkey Event" : "Third Party") + "</span>" +
           '<h3><a href="' + e.url + '">' + e.title + "</a></h3>" +
           '<p class="event-card-date">' + dateStr + "</p>" +
           (e.location ? '<p class="event-card-location"><a href="' + e.locationUrl + '" target="_blank" rel="noopener">' + e.location + "</a></p>" : "") +
           "</div>";
-      });
+      }
+
+      // Use local date to avoid UTC off-by-one for users in negative-offset timezones.
+      var nowDate = new Date();
+      var today = nowDate.getFullYear() + "-" + String(nowDate.getMonth() + 1).padStart(2, "0") + "-" + String(nowDate.getDate()).padStart(2, "0");
+
+      // Split into upcoming (soonest first) and past (most recent first).
+      var allEvents = events.slice();
+      var upcomingEvents = allEvents.filter(function (e) { return e.date >= today; }).sort(function (a, b) { return a.date.localeCompare(b.date); });
+      var pastEvents = allEvents.filter(function (e) { return e.date < today; }).sort(function (a, b) { return b.date.localeCompare(a.date); });
+
+      var listHtml = "";
+
+      // Upcoming events
+      if (upcomingEvents.length > 0) {
+        upcomingEvents.forEach(function (e) { listHtml += renderEventCard(e, false); });
+      } else {
+        listHtml += '<p class="no-events">No upcoming events. Check back soon!</p>';
+      }
+
+      // Past events (collapsed by default)
+      if (pastEvents.length > 0) {
+        listHtml += '<details class="past-events-toggle"><summary>Past events (' + pastEvents.length + ')</summary><div class="past-events-list">';
+        pastEvents.forEach(function (e) { listHtml += renderEventCard(e, true); });
+        listHtml += '</div></details>';
+      }
+
       document.getElementById("events-list").innerHTML = listHtml;
 
       document.getElementById("cal-prev").addEventListener("click", function () { if (currentIdx > 0) { currentIdx--; render(); } });
@@ -295,6 +316,7 @@ const events = entries
     gap: 1.5rem;
     max-height: 400px;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     padding: 0.5rem;
   }
   .events-list .event-card {
@@ -337,6 +359,47 @@ const events = entries
     margin: 0.3rem 0;
   }
   .events-list .event-card-location a { color: var(--valkey-link); }
+
+  .events-list .no-events {
+    text-align: center;
+    color: var(--valkey-text-light);
+    font-size: 1.4rem;
+    padding: 2rem 0;
+  }
+
+  .events-list .past-events-toggle {
+    border-top: 1px solid var(--valkey-line);
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .events-list .past-events-toggle summary {
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--valkey-text-light);
+    padding: 0.5rem 0;
+    list-style: none;
+  }
+  .events-list .past-events-toggle summary::-webkit-details-marker { display: none; }
+  .events-list .past-events-toggle summary::before {
+    content: "▶";
+    display: inline-block;
+    width: 1em;
+    text-align: center;
+    margin-right: 0.4rem;
+    transition: transform 0.2s;
+  }
+  .events-list .past-events-toggle[open] summary::before {
+    transform: rotate(90deg);
+  }
+  .events-list .past-events-toggle summary:hover {
+    color: var(--valkey-text);
+  }
+  .events-list .past-events-list {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
 
   @media (max-width: 600px) {
     .calendar-header span { font-size: 1.1rem; }

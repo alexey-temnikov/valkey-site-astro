@@ -24,7 +24,7 @@
     --sl-color-gray-1: #002a3a;          /* primary text (var(--valkey-text)) */
     --sl-color-gray-2: #1f2933;
     --sl-color-gray-3: #4c5760;
-    --sl-color-gray-4: #647782;          /* var(--valkey-text-light) */
+    --sl-color-gray-4: #3d4f5a;          /* var(--valkey-text-light) — 7.9.2 on white (WCAG AAA) */
     --sl-color-gray-5: #ccd3d6;          /* var(--valkey-line) — borders */
     --sl-color-gray-6: #f5f7f7;          /* var(--valkey-bg-soft) — subtle bg */
     --sl-color-black: #ffffff;           /* page background */
@@ -84,6 +84,13 @@
 }
 
 /* -------- Font-face (subset, Latin only for perf) -------- */
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/open-sans/opensans-latin-normal-300-v20.woff2") format("woff2");
+}
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
@@ -148,7 +155,7 @@
 
   /* Surface + text — light-mode defaults. */
   --valkey-text: #002a3a;
-  --valkey-text-light: #647782;
+  --valkey-text-light: #3d4f5a;  /* darkened for WCAG AAA — 8.5:1 on white, 7.9:1 on bg-soft */
   --valkey-text-strong: #003b5c;
   --valkey-line: #ccd3d6;
   --valkey-line-soft: #e6e9ea;
@@ -162,8 +169,8 @@
   --valkey-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
   --valkey-shadow-deep: 0 16px 40px rgba(48, 24, 110, 0.35);
   --valkey-on-accent: #ffffff;
-  --valkey-link: #0055a6;
-  --valkey-link-hover: #337ec6;
+  --valkey-link: #0055a6;        /* darkened for WCAG AAA — 7.4:1 on white */
+  --valkey-link-hover: #2575c2;  /* lighter hover — 4.8:1 on white (AA), visually distinct from link */
 
   /* Section accents — used by hero, "what's new", "docs" cards, etc. */
   --valkey-section-hero-bg: #30186e;
@@ -178,9 +185,9 @@
     rgba(48, 24, 110, 1) 100%
   );
   --valkey-section-whatsnew-bg: linear-gradient(rgb(48, 23, 110), rgb(105, 131, 255));
-  --valkey-section-docs-bg: #6983ff;
+  --valkey-section-docs-bg: #4a65d4;
   --valkey-section-docs-card-bg: #2d2471;
-  --valkey-section-participants-bg: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
+  --valkey-section-participants-bg: linear-gradient(180deg, #4a65d4 0%, #bcb5e7 100%);
   --valkey-section-participants-card-bg: #ffffff;
   --valkey-section-participants-card-hover: #f9f7fe;
   --valkey-section-styled-title-bg: linear-gradient(#3b2a66, #4e51bf);
@@ -191,8 +198,8 @@
 
   --valkey-sans: "Open Sans", "Segoe UI", Tahoma, sans-serif;
   --valkey-cond: "Open Sans Condensed", Impact, "Franklin Gothic Bold", sans-serif;
-  --valkey-serif: "Noto Serif", Georgia, serif;
-  --valkey-mono: "Fira Mono", Consolas, Menlo, Monaco, monospace;
+  --valkey-serif: "Noto Serif", "Iowan Old Style", "Apple Garamond", "Baskerville", "Times New Roman", serif;
+  --valkey-mono: "Fira Mono", Consolas, Menlo, Monaco, "Courier New", Courier, monospace;
 
   /* Starlight theme overrides — these go in the unlayered cascade so they
      win on Starlight pages (i.e. they tint the docs to the brand palette). */
@@ -312,6 +319,7 @@
    .site-header and Starlight's right-sidebar TOC keeps working. */
 html {
   overflow-x: clip;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -329,6 +337,7 @@ a {
 }
 a:hover {
   text-decoration: underline;
+  color: var(--valkey-link-hover);
 }
 
 .width-limiter {
@@ -450,6 +459,10 @@ starlight-menu-button + nav a[aria-current="page"],
 .site-header nav .has-submenu > a.active {
   color: var(--valkey-text-strong);
   border-bottom: 2px solid var(--valkey-link);
+}
+.site-header nav > a:hover,
+.site-header nav .has-submenu > a:hover {
+  color: var(--valkey-link-hover);
 }
 .site-header nav .has-submenu {
   position: relative;
@@ -673,7 +686,7 @@ starlight-menu-button + nav a[aria-current="page"],
 /* Body lead paragraph that follows .page-h1. */
 .page-lead {
   color: var(--valkey-text-light);
-  font-size: 1.05rem;
+  font-size: 1.125rem;
   max-width: 50rem;
   margin: 0 0 2rem;
 }
@@ -1098,7 +1111,7 @@ starlight-menu-button + nav a[aria-current="page"],
   height: 5px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--valkey-line);
   cursor: pointer;
   transition: all 0.2s ease;
   padding: 0;
@@ -1106,14 +1119,14 @@ starlight-menu-button + nav a[aria-current="page"],
 
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot:hover,
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot:focus {
-  background: #000;
+  background: var(--valkey-text-strong);
   transform: scale(1.1);
   outline-offset: 2px;
 }
 
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot[aria-current="true"],
 .homepage-participants-section .homepage-participants-navigation .homepage-participants-dots .homepage-participant-dot.active {
-  background: #000;
+  background: var(--valkey-text-strong);
   transform: scale(1.2);
 }
 
