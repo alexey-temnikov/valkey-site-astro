@@ -126,12 +126,17 @@ const newestRelease = latestReleases[0];
     font-size: 0.95rem;
     padding: 0.5rem 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-    transition: border-color 0.15s ease, gap 0.2s ease;
+    transition: border-color 0.15s ease;
   }
   .vk-hero-link:hover {
     text-decoration: none;
     border-color: #fff;
-    gap: 0.75rem;
+  }
+  .vk-hero-link svg {
+    transition: transform 0.2s ease;
+  }
+  .vk-hero-link:hover svg {
+    transform: translateX(3px);
   }
   .vk-hero-terminal-wrap { display: none; }
 
