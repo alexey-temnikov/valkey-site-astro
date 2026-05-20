@@ -183,13 +183,9 @@
   --valkey-section-participants-bg: linear-gradient(180deg, #6983ff 0%, #bcb5e7 100%);
   --valkey-section-participants-card-bg: #ffffff;
   --valkey-section-participants-card-hover: #f9f7fe;
-  --valkey-section-styled-title-bg: linear-gradient(rgb(59, 42, 102), rgb(78, 81, 191));
-  --valkey-section-page-subhead-bg: linear-gradient(
-    135deg,
-    var(--valkey-purple-300) 0%,
-    var(--valkey-purple-200) 100%
-  );
-  --valkey-banner-bg: var(--valkey-purple-300);
+  --valkey-section-styled-title-bg: linear-gradient(#3b2a66, #4e51bf);
+  --valkey-section-page-subhead-bg: linear-gradient(#3b2a66, #4e51bf);
+  --valkey-banner-bg: #2d2471;
   --valkey-footer-bg: #1a2026;
   --valkey-footer-text: #b3c2cb;
 
@@ -260,13 +256,12 @@
   --valkey-section-participants-bg: linear-gradient(180deg, #2e3a8a 0%, #4d4670 100%);
   --valkey-section-participants-card-bg: #1a2027;
   --valkey-section-participants-card-hover: #232a35;
-  --valkey-section-styled-title-bg: linear-gradient(rgb(34, 22, 64), rgb(44, 48, 117));
+  --valkey-section-styled-title-bg: linear-gradient(#3b2a66, #4e51bf);
   --valkey-section-page-subhead-bg: linear-gradient(
-    135deg,
-    #2c103a 0%,
-    #3f1953 100%
+    rgb(34, 22, 64),
+    rgb(44, 48, 117)
   );
-  --valkey-banner-bg: #2c103a;
+  --valkey-banner-bg: #2d2471;
   --valkey-footer-bg: #07090c;
   --valkey-footer-text: #9aa3b1;
 
@@ -650,7 +645,7 @@ starlight-menu-button + nav a[aria-current="page"],
 
 .badge {
   display: inline-block;
-  background: var(--valkey-purple-300);
+  background: #2d2471;
   color: #fff;
   font-size: 0.7rem;
   padding: 0.15rem 0.55rem;
