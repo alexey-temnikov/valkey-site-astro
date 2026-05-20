@@ -87,6 +87,13 @@
 @font-face {
   font-family: "Open Sans";
   font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/open-sans/opensans-latin-normal-300-v20.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-style: normal;
   font-weight: 400;
   font-display: swap;
   src: url("/fonts/open-sans/opensans-latin-normal-400-v20.woff2") format("woff2");
@@ -191,8 +198,8 @@
 
   --valkey-sans: "Open Sans", "Segoe UI", Tahoma, sans-serif;
   --valkey-cond: "Open Sans Condensed", Impact, "Franklin Gothic Bold", sans-serif;
-  --valkey-serif: "Noto Serif", Georgia, serif;
-  --valkey-mono: "Fira Mono", Consolas, Menlo, Monaco, monospace;
+  --valkey-serif: "Noto Serif", "Iowan Old Style", "Apple Garamond", "Baskerville", "Times New Roman", serif;
+  --valkey-mono: "Fira Mono", Consolas, Menlo, Monaco, "Courier New", Courier, monospace;
 
   /* Starlight theme overrides — these go in the unlayered cascade so they
      win on Starlight pages (i.e. they tint the docs to the brand palette). */
@@ -673,7 +680,7 @@ starlight-menu-button + nav a[aria-current="page"],
 /* Body lead paragraph that follows .page-h1. */
 .page-lead {
   color: var(--valkey-text-light);
-  font-size: 1.05rem;
+  font-size: 1.125rem;
   max-width: 50rem;
   margin: 0 0 2rem;
 }

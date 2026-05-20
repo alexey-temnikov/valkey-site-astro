@@ -39,10 +39,7 @@ const latestPosts = allPosts
               })}
             </time>
           </div>
-          <div class="vk-wn-release-version">
-            <span class="v-major">{latestMajor}</span>
-            <span class="v-rest">.{newestRelease.tag.split(".").slice(1).join(".")}</span>
-          </div>
+          <h3 class="vk-wn-release-version">Version {newestRelease.tag}</h3>
           <div class="vk-wn-release-card">
             <ReleaseCard release={newestRelease} heading="none" />
           </div>
@@ -218,18 +215,12 @@ const latestPosts = allPosts
   }
   .vk-wn-release-meta .meta-label { color: var(--valkey-link, #0055a6); font-weight: 600; }
   .vk-wn-release-version {
-    font-family: var(--valkey-cond, "Open Sans Condensed", Impact, sans-serif);
-    line-height: 0.9;
+    font-family: var(--valkey-sans, "Open Sans", "Segoe UI", Tahoma, sans-serif);
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.2;
     color: var(--valkey-text-strong, #003b5c);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
     margin: 0.25rem 0 1rem;
-  }
-  .vk-wn-release-version .v-major { font-size: clamp(3.5rem, 7vw, 5.5rem); color: var(--valkey-purple-200, #692a84); }
-  .vk-wn-release-version .v-rest {
-    font-size: clamp(1.75rem, 3.5vw, 2.75rem);
-    color: var(--valkey-purple-100, #8736aa);
-    margin-left: 0.15em;
   }
   .vk-wn-release-card :global(.release-section) { margin: 0; }
   .vk-wn-release-card :global(.release-section h4) {
