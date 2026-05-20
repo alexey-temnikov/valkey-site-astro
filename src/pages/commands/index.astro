@@ -96,7 +96,7 @@ const allCommandsSorted = Object.values(byGroup)
           <table class="command-table">
             <tbody>
               {commands.map((c) => (
-                <tr data-cmd={c.title.toLowerCase()} data-summary={(c.data.summary ?? "").toLowerCase()}>
+                <tr data-cmd={c.title.toLowerCase()}>
                   <th>
                     <a href={`/commands/${c.slug}/`}>
                       <code>{c.title}</code>
@@ -118,7 +118,7 @@ const allCommandsSorted = Object.values(byGroup)
       <h2>Alphabetical Command List</h2>
       <ul class="alpha-list">
         {allCommandsSorted.map((c) => (
-          <li data-cmd={c.title.toLowerCase()} data-summary={(c.data.summary ?? "").toLowerCase()}>
+          <li data-cmd={c.title.toLowerCase()}>
             <a href={`/commands/${c.slug}/`}><code>{c.title}</code></a>
           </li>
         ))}
@@ -141,10 +141,7 @@ const allCommandsSorted = Object.values(byGroup)
       let groupVisible = 0;
       rows.forEach((row) => {
         const el = row as HTMLElement;
-        const match =
-          !q ||
-          el.dataset.cmd!.includes(q) ||
-          el.dataset.summary!.includes(q);
+        const match = !q || el.dataset.cmd!.includes(q);
         el.style.display = match ? "" : "none";
         if (match) groupVisible++;
       });
