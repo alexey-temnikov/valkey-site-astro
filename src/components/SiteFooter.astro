@@ -101,7 +101,7 @@
      ==================================================================== */
   .footer {
     background-color: var(--valkey-footer-bg, #1a2026);
-    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-family: var(--valkey-sans, "Open Sans", "Segoe UI", Tahoma, sans-serif);
     font-size: 14px;
     color: #fff;
     padding: 20px 0;
@@ -215,6 +215,11 @@
   }
   .footer-email-list h2 {
     margin-top: 0;
+    font-weight: 350;
+    font-size: 1.5rem;
+  }
+  .footer-email-list p {
+    font-weight: 300;
   }
   .footer-form div.field {
     text-align: left;
